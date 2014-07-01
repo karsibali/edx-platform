@@ -12,6 +12,10 @@ from xmodule.partitions.partitions import Group, UserPartition
 GROUP_CONFIGURATION_JSON = {
     u'name': u'Test name',
     u'description': u'Test description',
+    u'groups': [
+        {u'name': u'Group A'},
+        {u'name': u'Group B'},
+    ],
 }
 
 
@@ -95,7 +99,6 @@ class GroupConfigurationsListHandlerTestCase(CourseTestCase, GroupConfigurations
     """
     Test cases for group_configurations_list_handler.
     """
-
     def setUp(self):
         """
         Set up GroupConfigurationsListHandlerTestCase.
@@ -231,7 +234,7 @@ class GroupConfigurationsDetailHandlerTestCase(CourseTestCase, GroupConfiguratio
             u'version': 1,
             u'groups': [
                 {u'id': 0, u'name': u'Group A', u'version': 1},
-                {u'id': 1, u'name': u'Group B', u'version': 1},
+                {u'id': 2, u'name': u'Group C', u'version': 1},
             ],
         }
         response = self.client.put(

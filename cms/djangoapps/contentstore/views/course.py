@@ -924,15 +924,10 @@ class GroupConfiguration(object):
         """
         Assign ids for the group_configuration's groups.
         """
-        # this is temporary logic, we are going to build default groups on front-end
-        if not self.configuration.get('groups'):
-            self.configuration['groups'] = [
-                {'name': 'Group A'}, {'name': 'Group B'},
-            ]
-
         # Assign ids to every group in configuration.
-        for index, group in enumerate(self.configuration.get('groups', [])):
-            group['id'] = index
+        for group in self.configuration.get('groups', []):
+            if group.get("id", -1) < 0:
+                group["id"] = random.randint(100, 10 ** 12)
 
     def get_used_ids(self):
         """
