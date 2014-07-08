@@ -6,6 +6,7 @@ import logging
 from uuid import uuid4
 from datetime import datetime
 from pytz import UTC
+import json
 
 from collections import OrderedDict
 from functools import partial
@@ -636,8 +637,8 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
         "published_by": safe_get_username(xblock.published_by),
         'studio_url': xblock_studio_url(xblock),
         "released_to_students": datetime.now(UTC) > xblock.start,
-        "release_date": release_date,
         "release_date_from": _get_release_date_from(xblock) if release_date else None,
+        'release_date': get_default_time_display(xblock.start),
     }
     if data is not None:
         xblock_info["data"] = data
@@ -649,6 +650,11 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
         xblock_info['child_info'] = _create_xblock_child_info(
             xblock, include_children_predicate=include_children_predicate
         )
+    if xblock.graded and xblock.category == u'sequential' and not is_unit(xblock):
+        xblock_info['due_date'] = get_default_time_display(xblock.due)
+        xblock_info['grading_format'] = xblock.format
+        xblock_info['course_graders'] =  json.dumps(CourseGradingModel.fetch(xblock.location.course_key).graders)
+
     return xblock_info
 
 

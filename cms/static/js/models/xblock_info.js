@@ -69,17 +69,40 @@ define(["backbone", "underscore", "js/utils/module"], function(Backbone, _, Modu
              * this will either be the parent subsection or the grandparent section.
              * This can be null if the release date is unscheduled.
              */
-            "release_date_from":null
+            "release_date_from":null,
+            /**
+            * If xblock is graded, the date after which student assesment will be evaluated.
+            **/
+            "due_date": null,
+            /**
+            * Grading policy for xblock
+            **/
+            "grading_format": null,
+            /**
+            * Course graders
+            **/
+            "course_graders": null,
         },
 
         parse: function(response) {
+            var ret = $.extend(true, {}, response);
+
             if (response.ancestor_info) {
-                response.ancestor_info.ancestors = this.parseXBlockInfoList(response.ancestor_info.ancestors);
+                ret.ancestor_info.ancestors = this.parseXBlockInfoList(response.ancestor_info.ancestors);
             }
             if (response.child_info) {
-                response.child_info.children = this.parseXBlockInfoList(response.child_info.children);
+                ret.child_info.children = this.parseXBlockInfoList(response.child_info.children);
             }
-            return response;
+
+            return ret;
+        },
+
+        preprocessFieldNames: function(metadataObject) {
+            metadataObject.metadata.start = metadataObject.metadata.release_date;
+            delete metadataObject.metadata.release_date;
+            metadataObject.metadata.due = metadataObject.metadata.due_date;
+            delete metadataObject.metadata.due_date;
+            return metadataObject;
         },
 
         parseXBlockInfoList: function(list) {
