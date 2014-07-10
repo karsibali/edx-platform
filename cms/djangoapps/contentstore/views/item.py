@@ -389,7 +389,7 @@ def _save_item(user, usage_key, data=None, children=None, metadata=None, nullout
         result.update(CourseGradingModel.update_section_grader_type(existing_item, grader_type, user))
 
     # Make public after updating the xblock, in case the caller asked for both an update and a publish.
-    # Although not supported in the UI, Bok Choy tests use this.
+    # Used by Bok Choy tests and staff locking.
     if publish == 'make_public':
         modulestore().publish(existing_item.location, user.id)
 
