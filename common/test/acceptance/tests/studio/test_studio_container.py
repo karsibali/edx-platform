@@ -4,14 +4,14 @@ The container page is used both for display units, and for
 displaying containers within units.
 """
 
-from ..pages.studio.auto_auth import AutoAuthPage
-from ..pages.studio.overview import CourseOutlinePage
-from ..fixtures.course import CourseFixture, XBlockFixtureDesc
+from ...pages.studio.auto_auth import AutoAuthPage
+from ...pages.studio.overview import CourseOutlinePage
+from ...fixtures.course import CourseFixture, XBlockFixtureDesc
 
-from .helpers import UniqueCourseTest
-from ..pages.studio.component_editor import ComponentEditorView
-from ..pages.studio.utils import add_discussion
-from ..pages.lms.courseware import CoursewarePage
+from ..helpers import UniqueCourseTest
+from ...pages.studio.component_editor import ComponentEditorView
+from ...pages.studio.utils import add_discussion
+from ...pages.lms.courseware import CoursewarePage
 
 from unittest import skip
 from bok_choy.promise import Promise
