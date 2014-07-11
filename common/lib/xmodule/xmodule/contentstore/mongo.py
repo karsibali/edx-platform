@@ -174,20 +174,25 @@ class MongoContentStore(ContentStore):
             course_key, start=start, maxresults=maxresults, get_thumbnails=False, sort=sort
         )
 
-    def remove_redundant_content_for_course(self, course_key):
+    def remove_redundant_content_for_courses(self):
         """
-        Finds and removes all redundant file/files (Mac OS metadata files with filename ".DS_Store"
-        or filename starts with "._")
-
-        :param course_key: the :class:`CourseKey` identifying the course
+        Finds and removes all redundant files (Mac OS metadata files with filename ".DS_Store"
+        or filename starts with "._") for all courses
         """
-        course_filter = course_key.make_asset_key("asset", None)
-        query = location_to_query(course_filter, wildcard=True, tag=XASSET_LOCATION_TAG)
+        query = SON([
+            ('_id.tag', XASSET_LOCATION_TAG),
+            ('_id.category', 'asset'),
+        ])
+        total_assets = self.fs_files.find(query).count()
 
         query['_id.name'] = {'$regex': ASSET_IGNORE_REGEX}
         items = self.fs_files.find(query)
+        assets_to_delete = items.count()
         for asset in items:
             self.fs.delete(asset['_id'])
+
+        self.fs_files.remove(query)
+        return total_assets, assets_to_delete
 
     def _get_all_content_for_course(self, course_key, get_thumbnails=False, start=0, maxresults=-1, sort=None):
         '''
