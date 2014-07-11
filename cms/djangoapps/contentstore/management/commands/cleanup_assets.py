@@ -28,7 +28,7 @@ class Command(BaseCommand):
         log.info(u"Cleaning up assets for all courses")
         try:
             # Remove all redundant Mac OS metadata files
-            total_assets, assets_deleted = content_store.remove_redundant_content_for_courses()
+            assets_deleted = content_store.remove_redundant_content_for_courses()
             success = True
         except Exception as err:
             log.info(u"=" * 30 + u"> failed to cleanup")
@@ -37,6 +37,4 @@ class Command(BaseCommand):
 
         if success:
             log.info(u"=" * 80)
-            log.info(u"=" * 30 + u"> Assets cleanup summary")
-            log.info(u"Total number of assets: {0}".format(total_assets))
             log.info(u"Total number of assets deleted: {0}".format(assets_deleted))
