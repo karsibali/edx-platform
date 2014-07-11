@@ -167,21 +167,25 @@ class VideoPage(PageObject):
         else:
             return '.vert.vert-0'
 
-    def get_element_selector(self, video_display_name, class_name):
+    def get_element_selector(self, video_display_name, class_name, vertical=True):
         """
         Construct unique element selector.
 
         Arguments:
             video_display_name (str or None): Display name of a Video.
             class_name (str): css class name for an element.
+            vertical (bool): do we need vertical css selector or not. vertical css selector is not present in CMS
 
         Returns:
             str: Element Selector.
 
         """
-        return '{vertical} {video_element}'.format(
-            vertical=self.get_video_vertical_selector(video_display_name),
-            video_element=class_name)
+        if vertical:
+            return '{vertical} {video_element}'.format(
+                vertical=self.get_video_vertical_selector(video_display_name),
+                video_element=class_name)
+        else:
+            return class_name
 
     def is_video_rendered(self, mode, video_display_name=None):
         """
@@ -285,7 +289,8 @@ class VideoPage(PageObject):
 
         """
         selector = self.get_element_selector(video_display_name, VIDEO_BUTTONS[button_id])
-        return self.q(css=selector).visible
+        # TODO! .present will be removed once bok-choy is updated to latest commit
+        return self.q(css=selector).present and self.q(css=selector).visible
 
     def show_captions(self, video_display_name=None):
         """
@@ -307,6 +312,17 @@ class VideoPage(PageObject):
         """
         self._captions_visibility(False, video_display_name)
 
+    def captions_visible(self, video_display_name=None):
+        """
+        Get current visibility sate of captions.
+
+        Returns:
+            bool: True means captions are visible, False means captions are not visible
+
+        """
+        caption_state_selector = self.get_element_selector(video_display_name, CSS_CLASS_NAMES['closed_captions'])
+        return not self.q(css=caption_state_selector).present
+
     @wait_for_js
     def _captions_visibility(self, captions_new_state, video_display_name=None):
         """
@@ -320,28 +336,16 @@ class VideoPage(PageObject):
         states = {True: 'Shown', False: 'Hidden'}
         state = states[captions_new_state]
 
-        caption_state_selector = self.get_element_selector(video_display_name, CSS_CLASS_NAMES['closed_captions'])
-
-        def _captions_current_state():
-            """
-            Get current visibility sate of captions.
-
-            Returns:
-                bool: True means captions are visible, False means captions are not visible
-
-            """
-            return not self.q(css=caption_state_selector).present
-
         # Make sure that the CC button is there
         EmptyPromise(lambda: self.is_button_shown('CC'),
                      "CC button is shown").fulfill()
 
         # toggle captions visibility state if needed
-        if _captions_current_state() != captions_new_state:
+        if self.captions_visible(video_display_name) != captions_new_state:
             self.click_player_button('CC')
 
             # Verify that captions state is toggled/changed
-            EmptyPromise(lambda: _captions_current_state() == captions_new_state,
+            EmptyPromise(lambda: self.captions_visible(video_display_name) == captions_new_state,
                          "Captions are {state}".format(state=state)).fulfill()
 
     def captions_text(self, video_display_name=None):
