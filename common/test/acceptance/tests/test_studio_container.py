@@ -10,6 +10,7 @@ from ..fixtures.course import CourseFixture, XBlockFixtureDesc
 
 from .helpers import UniqueCourseTest
 from ..pages.studio.component_editor import ComponentEditorView
+from ..pages.studio.html_component_editor import HtmlComponentEditorView
 from ..pages.studio.utils import add_discussion
 from ..pages.lms.courseware import CoursewarePage
 from ..pages.lms.staff_view import StaffPage
@@ -427,6 +428,9 @@ class UnitPublishingTest(ContainerBase):
     LOCKED_STATUS = "Publishing Status\nUnpublished (Staff only)"
     RELEASE_TITLE_RELEASED = "RELEASED:"
 
+    LAST_PUBLISHED = 'Last published'
+    LAST_SAVED = 'Draft saved on'
+
     def setup_fixtures(self):
         """
         Sets up a course structure with a unit and a single HTML child.
@@ -477,11 +481,16 @@ class UnitPublishingTest(ContainerBase):
             When I go to the unit page in Studio
             Then the title in the Publish information box is "Published"
             And the Publish button is disabled
+            And the last published text contains "Last published"
+            And the last saved text contains "Last published"
             And when I add a component to the unit
             Then the title in the Publish information box is "Draft (Unpublished changes)"
+            And the last saved text contains "Draft saved on"
             And the Publish button is enabled
             And when I click the Publish button
             Then the title in the Publish information box is "Published"
+            And the last published text contains "Last published"
+            And the last saved text contains "Last published"
         """
         unit = self.go_to_unit_page()
         self._verify_publish_title(unit, self.PUBLISHED_STATUS)
@@ -489,15 +498,20 @@ class UnitPublishingTest(ContainerBase):
         self._verify_release_date_info(
             unit, self.RELEASE_TITLE_RELEASED, 'Jan 01, 1970 at 00:00 UTC with Section "Test Section"'
         )
+        self.assertTrue(self.LAST_PUBLISHED in unit.last_published_text)
+        self.assertTrue(self.LAST_PUBLISHED in unit.last_saved_text)
         # Should not be able to click on Publish action -- but I don't know how to test that it is not clickable.
         # TODO: continue discussion with Muhammad and Jay about this.
 
         # Add a component to the page so it will have unpublished changes.
         add_discussion(unit)
         self._verify_publish_title(unit, self.DRAFT_STATUS)
+        self.assertTrue(self.LAST_SAVED in unit.last_saved_text)
         unit.publish_action.click()
         unit.wait_for_ajax()
         self._verify_publish_title(unit, self.PUBLISHED_STATUS)
+        self.assertTrue(self.LAST_PUBLISHED in unit.last_published_text)
+        self.assertTrue(self.LAST_PUBLISHED in unit.last_saved_text)
 
     def test_discard_changes(self):
         """
@@ -648,6 +662,54 @@ class UnitPublishingTest(ContainerBase):
         self._verify_components_visible(['discussion'])
         # Switch to student view and verify visible.
         self._verify_student_view_visible(['discussion'])
+
+    def test_published_unit_with_draft_child(self):
+        """
+        Scenario: A published unit with a draft child can be published
+            Given I have a published unit with no unpublished changes
+            When I go to the unit page in Studio
+            And edit the content of the only component
+            Then the content changes
+            And the title in the Publish information box is "Draft (Unpublished changes)"
+            And when I click the Publish button
+            Then the title in the Publish information box is "Published"
+            And when I click the View Live button
+            Then I see the changed content in LMS
+        """
+        modified_content = 'modified content'
+
+        unit = self.go_to_unit_page()
+        component = unit.xblocks[1]
+        component.edit()
+        HtmlComponentEditorView(self.browser, component.locator).set_content_and_save(modified_content)
+        self.assertEqual(component.student_content, modified_content)
+        self.assertEqual(self.DRAFT_STATUS, unit.publish_title)
+        unit.publish_action.click()
+        unit.wait_for_ajax()
+        self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
+        unit.view_published_version()
+        self.assertTrue(modified_content in self.courseware.xblock_component_html_content(0))
+
+    def test_delete_child_in_published_unit(self):
+        """
+        Scenario: A published unit can be published again after deleting a child
+            Given I have a published unit with no unpublished changes
+            When I go to the unit page in Studio
+            And delete the only component
+            Then the title in the Publish information box is "Draft (Unpublished changes)"
+            And when I click the Publish button
+            Then the title in the Publish information box is "Published"
+            And when I click the View Live button
+            Then I see an empty unit in LMS
+        """
+        unit = self.go_to_unit_page()
+        unit.delete(0)
+        self.assertEqual(self.DRAFT_STATUS, unit.publish_title)
+        unit.publish_action.click()
+        unit.wait_for_ajax()
+        self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
+        unit.view_published_version()
+        self.assertEqual(0, self.courseware.num_xblock_components)
 
     def _verify_student_view_locked(self):
         """
