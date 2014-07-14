@@ -242,7 +242,7 @@ if Backbone?
 
     goHome: ->
       @template = _.template($("#discussion-home").html())
-      $(".discussion-article").html(@template)
+      $(".non-new-post-stuff").html(@template)
       $(".forum-nav-thread-list a").removeClass("is-active")
       $("input.email-setting").bind "click", @updateEmailNotifications
       url = DiscussionUtil.urlFor("notifications_status",window.user.get("id"))
