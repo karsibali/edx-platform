@@ -59,7 +59,8 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
         var Publisher = BaseView.extend({
             events: {
                 'click .action-publish': 'publish',
-                'click .action-discard': 'discardChanges'
+                'click .action-discard': 'discardChanges',
+                'click .action-staff-lock': 'toggleStaffLock'
             },
 
             // takes XBlockInfo as a model
@@ -87,7 +88,8 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
                     published_by: this.model.get('published_by'),
                     released_to_students: this.model.get('released_to_students'),
                     release_date: this.model.get('release_date'),
-                    release_date_from: this.model.get('release_date_from')
+                    release_date_from: this.model.get('release_date_from'),
+                    visible_to_staff_only: this.model.get('visible_to_staff_only')
                 }));
 
                 return this;
@@ -127,6 +129,47 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
                             });
                     }
                 );
+            },
+
+            toggleStaffLock: function (e) {
+                var xblockInfo = this.model, that=this, removeLock;
+                if (e && e.preventDefault) {
+                    e.preventDefault();
+                }
+                removeLock = xblockInfo.get('visible_to_staff_only');
+                if (removeLock) {
+                    this.confirmThenRunOperation(gettext("Remove Staff Lock"),
+                        gettext("Are you sure you want to remove teh staff lock? Once you publish this unit, it will be released to students on the release date."),
+                        gettext("Remove Staff Lock"),
+                        function () {
+                            that.runOperationShowingMessage(gettext('Removing Staff Lock&hellip;'),
+                                function () {
+                                    return xblockInfo.save({publish: 'make_public', metadata: {visible_to_staff_only: false}}, {patch: true});
+                                }).always(function() {
+                                    xblockInfo.set("publish", null);
+                                }).done(function () {
+                                    xblockInfo.fetch();
+                                });
+                        }
+                    );
+                }
+                else {
+//                    this.confirmThenRunOperation(gettext("Remove Staff Lock"),
+//                        gettext("Are you sure you want to remove teh staff lock? Once you publish this unit, it will be released to students on the release date."),
+//                        gettext("Remove Staff Lock"),
+//                        function () {
+                            that.runOperationShowingMessage(gettext('Setting Staff Lock&hellip;'),
+                                function () {
+                                    return xblockInfo.save({publish: 'make_public', metadata: {visible_to_staff_only: true}}, {patch: true});
+                                }).always(function() {
+                                    xblockInfo.set("publish", null);
+                                }).done(function () {
+                                    xblockInfo.fetch();
+                                });
+//                        }
+//                    );
+                }
+
             }
         });
 

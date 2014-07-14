@@ -1,6 +1,8 @@
 <div class="bit-publishing <% if (published && !has_changes) { %>published<% } else { %>draft<%} %>">
     <h3 class="bar-mod-title pub-status"><span class="sr"><%= gettext("Publishing Status") %></span>
-        <% if (published && !has_changes) { %>
+        <% if (visible_to_staff_only) { %>
+           <%= gettext("Unpublished (Staff only)") %>
+        <% } else if (published && !has_changes) { %>
            <%= gettext("Published") %>
         <% } else { %>
            <%= gettext("Draft (Unpublished changes)") %>
@@ -50,16 +52,23 @@
         </p>
     </div>
 
-    <!--To be added in STUD-1830-->
-    <!--<div class="wrapper-visibility bar-mod-content">-->
-        <!--<h5 class="title">Will be Visible to:</h5>-->
-        <!--<p class="copy">Staff and Students</p>-->
-        <!--<p class="action-inline">-->
-            <!--<a href="">-->
-                <!--<i class="icon-unlock is-disabled"></i> Hide from Students-->
-            <!--</a>-->
-        <!--</p>-->
-    <!--</div>-->
+    <!-- TODO: i18n -->
+    <div class="wrapper-visibility bar-mod-content">
+        <% if (visible_to_staff_only) { %>
+            <h5 class="title">Only Visible to Staff</h5>
+        <% } else { %>
+            <h5 class="title">Will be Visible to Staff and Students</h5>
+        <% } %>
+        <p class="action-inline">
+            <a href="" class="action-staff-lock">
+                <% if (visible_to_staff_only) { %>
+                     <i class="icon-unlock"></i> Staff lock enabled
+                <% } else { %>
+                    <i class="icon-lock"></i> Hide from Students
+                <% } %>
+            </a>
+        </p>
+    </div>
 
     <div class="wrapper-pub-actions bar-mod-actions">
         <ul class="action-list">

@@ -638,6 +638,7 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
         "released_to_students": datetime.now(UTC) > xblock.start,
         "release_date": release_date,
         "release_date_from": _get_release_date_from(xblock) if release_date else None,
+        "visible_to_staff_only": xblock.visible_to_staff_only,
     }
     if data is not None:
         xblock_info["data"] = data
