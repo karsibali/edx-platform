@@ -73,7 +73,9 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
             },
 
             onSync: function(model) {
-                if (ViewUtils.hasChangedAttributes(model, ['has_changes', 'published', 'edited_on', 'edited_by'])) {
+                if (ViewUtils.hasChangedAttributes(model, [
+                    'has_changes', 'published', 'edited_on', 'edited_by', 'visible_to_staff_only'
+                ])) {
                    this.render();
                 }
             },
@@ -132,44 +134,45 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
             },
 
             toggleStaffLock: function (e) {
-                var xblockInfo = this.model, that=this, removeLock;
+                var xblockInfo = this.model, self=this, enableStaffLock,
+                    saveAndPublishStaffLock;
                 if (e && e.preventDefault) {
                     e.preventDefault();
                 }
-                removeLock = xblockInfo.get('visible_to_staff_only');
-                if (removeLock) {
+                enableStaffLock = !xblockInfo.get('visible_to_staff_only');
+
+                saveAndPublishStaffLock = function() {
+                    return xblockInfo.save({
+                        publish: 'make_public',
+                        metadata: {visible_to_staff_only: enableStaffLock}},
+                        {patch: true}
+                    ).always(function() {
+                        xblockInfo.set("publish", null);
+                    }).done(function () {
+                        xblockInfo.fetch();
+                    }).fail(function() {
+                        self.checkStaffLock(!enableStaffLock);
+                    });
+                };
+
+                this.checkStaffLock(enableStaffLock);
+                if (enableStaffLock) {
+                    this.runOperationShowingMessage(gettext('Setting Staff Lock&hellip;'),
+                        _.bind(saveAndPublishStaffLock, self));
+                } else {
                     this.confirmThenRunOperation(gettext("Remove Staff Lock"),
-                        gettext("Are you sure you want to remove teh staff lock? Once you publish this unit, it will be released to students on the release date."),
+                        gettext("Are you sure you want to remove the staff lock? Once you publish this unit, it will be released to students on the release date."),
                         gettext("Remove Staff Lock"),
                         function () {
-                            that.runOperationShowingMessage(gettext('Removing Staff Lock&hellip;'),
-                                function () {
-                                    return xblockInfo.save({publish: 'make_public', metadata: {visible_to_staff_only: false}}, {patch: true});
-                                }).always(function() {
-                                    xblockInfo.set("publish", null);
-                                }).done(function () {
-                                    xblockInfo.fetch();
-                                });
+                            self.runOperationShowingMessage(gettext('Removing Staff Lock&hellip;'),
+                                _.bind(saveAndPublishStaffLock, self));
                         }
                     );
                 }
-                else {
-//                    this.confirmThenRunOperation(gettext("Remove Staff Lock"),
-//                        gettext("Are you sure you want to remove teh staff lock? Once you publish this unit, it will be released to students on the release date."),
-//                        gettext("Remove Staff Lock"),
-//                        function () {
-                            that.runOperationShowingMessage(gettext('Setting Staff Lock&hellip;'),
-                                function () {
-                                    return xblockInfo.save({publish: 'make_public', metadata: {visible_to_staff_only: true}}, {patch: true});
-                                }).always(function() {
-                                    xblockInfo.set("publish", null);
-                                }).done(function () {
-                                    xblockInfo.fetch();
-                                });
-//                        }
-//                    );
-                }
+            },
 
+            checkStaffLock: function(check) {
+                this.$('.lock-checkbox').prop('checked', check);
             }
         });
 
