@@ -78,6 +78,7 @@ Navigating the Course Outline
 ?????
 
 
+.. _Reorganize the Course Outline:
 
 ************************************************
 Reorganize the Course Outline

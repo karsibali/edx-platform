@@ -46,7 +46,7 @@ See:
 #. :ref:`Create a Section`
 #. :ref:`Create a Subsection`
 #. :ref:`Schedule Release Dates`
-#. :ref:`Create a Unit`
+#. :ref:`Add a Component to a Unit`
 #. :ref:`Add a Component`
 #. :ref:`Publish a Unit`
 
@@ -60,7 +60,7 @@ Revising Content
 WORKFLOW DIAGRAM
 
 #. :ref:`Reorganize the Course Outline`
-#. :ref:`Reorganize a Unit`
+#. :ref:`Reorganize Units`
 #. :ref:`Add<Add a Component>`, :ref:`edit<Edit a Component>`, or :ref:`delete<Delete a Component>` components.
 #. :ref:`Publish a Unit`
    
