@@ -83,11 +83,7 @@ class UserPartition(namedtuple("UserPartition", "id name description groups")):
             "name": self.name,
             "description": self.description,
             "groups": [g.to_json() for g in self.groups],
-            "version": UserPartition.VERSION,
-            "usage": [
-                {"label": "Unit Name 1 / Content Experiment Name 1", "url" : "https://www.edx.org"},
-                {"label": "Unit Name 2 / Content Experiment Name 2", "url" : "https://edge.edx.org"}
-            ]
+            "version": UserPartition.VERSION
         }
 
     @staticmethod

@@ -33,7 +33,8 @@ from contentstore.utils import (
     get_lms_link_for_item,
     add_extra_panel_tab,
     remove_extra_panel_tab,
-    reverse_course_url
+    reverse_course_url,
+    reverse_usage_url,
 )
 from models.settings.course_details import CourseDetails, CourseSettingsEncoder
 
@@ -924,7 +925,7 @@ class GroupConfiguration(object):
         """
         Assign id for the json representation of group configuration.
         """
-        self.configuration['id'] = unicode(configuration_id) if configuration_id else unicode(uuid.uuid1())
+        self.configuration['id'] = int(configuration_id) if configuration_id else random.randint(100, 10**12)
 
     def assign_group_ids(self):
         """
@@ -952,6 +953,37 @@ class GroupConfiguration(object):
         """
         return UserPartition.from_json(self.configuration)
 
+    @staticmethod
+    def get_unit_urls(course, modulestore, course_key):
+        """
+        Get all units names associated with experiments.
+
+        Returns:
+        {'user_partition_id':
+            [
+                {'label': 'Unit Name / Experiment Name', 'url': 'url_to_parent_vertical1'},
+                {'label': 'Another Unit Name / Another Experiment Name', 'url': 'url_to_parent_vertical2'}
+            ]
+        }
+        """
+
+        experiment_dict = {}
+        descriptors = modulestore.get_items(course.id, category='split_test')
+        for split_test in descriptors:
+            experiment_dict[split_test.user_partition_id] = []
+            parent = modulestore.get_parent_location(split_test.location)
+            parent_url = reverse_usage_url(
+                'unit_handler',
+                course_key.make_usage_key(parent.block_type, parent.name)
+            )
+            for vertical in split_test.active_and_inactive_children()[0]:
+                for child in vertical.get_children():
+                    experiment_dict[split_test.user_partition_id].append({
+                        'label': '{} / {}'.format(child.display_name, split_test.display_name),
+                        'url': parent_url
+                    })
+        return experiment_dict
+
 
 @require_http_methods(("GET", "POST"))
 @login_required
@@ -973,10 +1005,17 @@ def group_configurations_list_handler(request, course_key_string):
         group_configuration_url = reverse_course_url('group_configurations_list_handler', course_key)
         split_test_enabled = SPLIT_TEST_COMPONENT_TYPE in course.advanced_modules
 
+        unit_urls = GroupConfiguration.get_unit_urls(course, store, course_key)
+        configurations = []
+        for partition in course.user_partitions:
+            configuration = partition.to_json()
+            configuration['usage'] = unit_urls.get(partition.id, [])
+            configurations.append(configuration)
+
         return render_to_response('group_configurations.html', {
             'context_course': course,
             'group_configuration_url': group_configuration_url,
-            'configurations': [u.to_json() for u in course.user_partitions] if split_test_enabled else None,
+            'configurations': configurations if split_test_enabled else None,
         })
     elif "application/json" in request.META.get('HTTP_ACCEPT'):
         # from here on down, we know the client has requested JSON
@@ -997,6 +1036,7 @@ def group_configurations_list_handler(request, course_key_string):
                 course.id,
                 kwargs={'group_configuration_id': new_configuration.id}
             )
+            import ipdb; ipdb.set_trace()
             store.update_item(course, request.user.id)
             return response
     else:
