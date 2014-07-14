@@ -157,14 +157,14 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
 
                 this.checkStaffLock(enableStaffLock);
                 if (enableStaffLock) {
-                    this.runOperationShowingMessage(gettext('Setting Staff Lock&hellip;'),
+                    ViewUtils.runOperationShowingMessage(gettext('Setting Staff Lock&hellip;'),
                         _.bind(saveAndPublishStaffLock, self));
                 } else {
-                    this.confirmThenRunOperation(gettext("Remove Staff Lock"),
+                    ViewUtils.confirmThenRunOperation(gettext("Remove Staff Lock"),
                         gettext("Are you sure you want to remove the staff lock? Once you publish this unit, it will be released to students on the release date."),
                         gettext("Remove Staff Lock"),
                         function () {
-                            self.runOperationShowingMessage(gettext('Removing Staff Lock&hellip;'),
+                            ViewUtils.runOperationShowingMessage(gettext('Removing Staff Lock&hellip;'),
                                 _.bind(saveAndPublishStaffLock, self));
                         }
                     );
