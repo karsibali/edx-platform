@@ -53,7 +53,7 @@
         <% } else { %>
           <li class="group-configuration-usage-text">
             <%= gettext('This Group Configuration is not in use. Start by adding a content experiment to any Unit via the') %>
-            <a href="https://www.edx.org"><%= gettext('Course Outline') %></a>
+            <a href=<%= course_outline_url %>><%= gettext('Course Outline') %></a>
           </li>
         <% } %>
       </ol>
