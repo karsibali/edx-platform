@@ -84,3 +84,35 @@
     }
   }
 }
+
+.content-supplementary {
+
+  .bit-publishing {
+    @extend %bar-module;
+
+    &.published,
+    &.is-published {
+      @extend %bar-module-green;
+    }
+
+    &.draft,
+    &.is-draft {
+      @extend %bar-module-yellow;
+    }
+
+    &.staff-only,
+    &.is-staff-only {
+      @extend %bar-module-black;
+    }
+  }
+}
+
+// black bar and title bg version
+%bar-module-black {
+  @extend %bar-module;
+  border-top: 5px solid $black;
+
+  .bar-mod-title {
+    background-color: $gray-l4;
+  }
+}

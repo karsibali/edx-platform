@@ -82,16 +82,16 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
 
             render: function () {
                 this.$el.html(this.template({
-                    has_changes: this.model.get('has_changes'),
+                    hasChanges: this.model.get('has_changes'),
                     published: this.model.get('published'),
-                    edited_on: this.model.get('edited_on'),
-                    edited_by: this.model.get('edited_by'),
-                    published_on: this.model.get('published_on'),
-                    published_by: this.model.get('published_by'),
-                    released_to_students: this.model.get('released_to_students'),
-                    release_date: this.model.get('release_date'),
-                    release_date_from: this.model.get('release_date_from'),
-                    visible_to_staff_only: this.model.get('visible_to_staff_only')
+                    editedOn: this.model.get('edited_on'),
+                    editedBy: this.model.get('edited_by'),
+                    publishedOn: this.model.get('published_on'),
+                    publishedBy: this.model.get('published_by'),
+                    releasedToStudents: this.model.get('released_to_students'),
+                    releaseDate: this.model.get('release_date'),
+                    releaseDateFrom: this.model.get('release_date_from'),
+                    visibleToStaffOnly: this.model.get('visible_to_staff_only')
                 }));
 
                 return this;

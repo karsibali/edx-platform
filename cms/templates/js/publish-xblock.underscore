@@ -1,26 +1,37 @@
-<div class="bit-publishing <% if (published && !has_changes) { %>published<% } else { %>draft<%} %>">
+<%
+var publishClasses = "";
+var title = gettext("Draft (Never published)");
+if (published) {
+    if (published && hasChanges) {
+        publishClasses = publishClasses + " is-draft";
+        title = gettext("Draft (Unpublished changes)");
+    } else {
+        publishClasses = publishClasses + " is-published";
+        title = gettext("Published");
+    }
+}
+if (visibleToStaffOnly) {
+    publishClasses = publishClasses + " is-staff-only";
+    title = gettext("Unpublished (Staff only)");
+}
+%>
+<div class="bit-publishing <%= publishClasses %>">
     <h3 class="bar-mod-title pub-status"><span class="sr"><%= gettext("Publishing Status") %></span>
-        <% if (visible_to_staff_only) { %>
-           <%= gettext("Unpublished (Staff only)") %>
-        <% } else if (published && !has_changes) { %>
-           <%= gettext("Published") %>
-        <% } else { %>
-           <%= gettext("Draft (Unpublished changes)") %>
-        <% } %>
+        <%= title %>
     </h3>
 
     <div class="wrapper-last-draft bar-mod-content">
         <p class="copy meta">
-            <% if (has_changes && edited_on && edited_by) {
+            <% if (hasChanges && editedOn && editedBy) {
                 var message = gettext("Draft saved on %(last_saved_date)s by %(edit_username)s") %>
                 <%= interpolate(message, {
-                    last_saved_date: '<span class="date">' + edited_on + '</span>',
-                    edit_username: '<span class="user">' + edited_by + '</span>' }, true) %>
-            <% } else if (published_on && published_by) {
+                    last_saved_date: '<span class="date">' + editedOn + '</span>',
+                    edit_username: '<span class="user">' + editedBy + '</span>' }, true) %>
+            <% } else if (publishedOn && publishedBy) {
                 var message = gettext("Last published %(last_published_date)s by %(publish_username)s"); %>
                 <%= interpolate(message, {
-                    last_published_date: '<span class="date">' + published_on + '</span>',
-                    publish_username: '<span class="user">' + published_by + '</span>' }, true) %>
+                    last_published_date: '<span class="date">' + publishedOn + '</span>',
+                    publish_username: '<span class="user">' + publishedBy + '</span>' }, true) %>
             <% } else { %>
                 <%= gettext("Previously published") %>
             <% } %>
@@ -30,8 +41,8 @@
     <!--TODO this needs strikeout styles once staff lock exists-->
     <div class="wrapper-release bar-mod-content">
         <h5 class="title">
-            <% if (published && release_date) {
-                if (released_to_students) { %>
+            <% if (published && releaseDate) {
+                if (releasedToStudents) { %>
                     <%= gettext("Released:") %>
                 <% } else { %>
                     <%= gettext("Scheduled:") %>
@@ -41,11 +52,11 @@
             <% } %>
         </h5>
         <p class="copy">
-            <% if (release_date) { %>
+            <% if (releaseDate) { %>
                 <% var message = gettext("%(release_date)s with %(section_or_subsection)s") %>
                 <%= interpolate(message, {
-                    release_date: '<span class="release-date">' + release_date + '</span>',
-                    section_or_subsection: '<span class="release-with">' + release_date_from + '</span>' }, true) %>
+                    release_date: '<span class="release-date">' + releaseDate + '</span>',
+                    section_or_subsection: '<span class="release-with">' + releaseDateFrom + '</span>' }, true) %>
             <% } else { %>
                 <%= gettext("Unscheduled") %>
             <% } %>
@@ -55,7 +66,7 @@
     <!-- TODO: i18n -->
     <div class="wrapper-visibility bar-mod-content">
         <h5 class="title">Will Be Visible To:</h5>
-        <% if (visible_to_staff_only) { %>
+        <% if (visibleToStaffOnly) { %>
             <p class="copy">Staff Only</p>
         <% } else { %>
             <p class="copy">Staff and Students</p>
@@ -63,7 +74,7 @@
         <p class="action-inline">
             <a href="" class="action-staff-lock">
                 <input type="checkbox" class="lock-checkbox" data-tooltip="<%= gettext('Lock/unlock file') %>"
-                         <%= visible_to_staff_only ? "checked" : "" %>/>
+                         <%= visibleToStaffOnly ? "checked" : "" %>/>
                 <%= gettext('Hide from students') %>
             </a>
         </p>
@@ -72,12 +83,12 @@
     <div class="wrapper-pub-actions bar-mod-actions">
         <ul class="action-list">
             <li class="action-item">
-                <a class="action-publish action-primary <% if (published && !has_changes) { %>is-disabled<% } %>"
+                <a class="action-publish action-primary <% if (published && !hasChanges) { %>is-disabled<% } %>"
                    href=""><%= gettext("Publish") %>
                 </a>
             </li>
             <li class="action-item">
-                <a class="action-discard action-secondary <% if (!published || !has_changes) { %>is-disabled<% } %>"
+                <a class="action-discard action-secondary <% if (!published || !hasChanges) { %>is-disabled<% } %>"
                    href=""><%= gettext("Discard Changes") %>
                 </a>
             </li>
