@@ -60,7 +60,7 @@ Subsection States
 
 As an course author, you work with subsections in the following states:
 
-* `Draft: Unscheduled`_
+* `Unscheduled`_
 * `Scheduled with Section`_
 * `Scheduled`_
 * `Scheduled with Unpublished Changes`_
@@ -69,8 +69,10 @@ As an course author, you work with subsections in the following states:
 * `Hidden from Students`_
 
 ========================
-Draft: Unscheduled
+Unscheduled
 ========================
+
+NOT APPLICABLE TO SUBSECTIONS?  CONFIRM REMOVE WHOLE SECTION
 
 When you create a subsection, it does not have a scheduled release date.
 Regardless of the state of units within the subsection, the entire subsection
@@ -87,10 +89,11 @@ To make the content available to students, you must schedule the release date.
 Scheduled with Section
 =======================
 
-You can set the subsection to release automatically with the section it is in.
+When you create a subsection, it is set by default to release at the same time
+as the section it is in.
 
-The following example shows how an subsection in the Draft: Unscheduled state
-is displayed in the outline:
+The following example shows how an subsection in the Scheduled with Section
+state is displayed in the outline:
 
 TBP
 

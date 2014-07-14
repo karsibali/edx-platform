@@ -60,14 +60,14 @@ Section States
 
 As an course author, you work with sections in the following states:
 
-* `Draft: Unscheduled`_
+* `Unscheduled`_
 * `Scheduled`_
 * `Released`_
 * `Released with Unpublished Changes`_
 * `Hidden from Students`_
 
 ========================
-Draft: Unscheduled
+Unscheduled
 ========================
 
 When you create a section, it does not have a scheduled release date.
@@ -86,9 +86,9 @@ To make the content available to students, you must schedule the release date.
 Scheduled
 ==========
 
-A section that is scheduled for release on a future date is not visible to
-students. Regardless of the state of content within the section, the entire
-section is not visible to students.
+A section that is scheduled for release on a future date will not visible to
+students until after the release date. Regardless of the state of content
+within the section, the entire section will not visible to students.
 
 The following example shows how an section in the Scheduled state is displayed
 in the outline:
@@ -120,7 +120,7 @@ If you change a unit in a published section, the section state becomes Released
 with Unpublished Changes.  Students view the last published copy of content in
 the section.
 
-The following example shows how an section that is hidden from students is
+The following example shows how an section that has unpublished changes is
 displayed in the outline:
 
 TBP
@@ -156,7 +156,7 @@ For sections that are not hidden from students and past the release date,
 students can see content; however, students do not necessarily see all content
 in the section. Students may not see content in:
 
-* A subsection, if its release date is not set or in the future, or if the
+* A subsection, if its release date is in the future, or if the
   subsection is hidden from students.
   
 * A unit, if it was never published, or if it is hidden from students.

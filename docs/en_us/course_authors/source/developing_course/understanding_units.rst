@@ -133,8 +133,8 @@ Unit States and Visibility to Students
 
 Students never see a unit that is in the state Draft (Never Published).
 
-If the state is Published or Draft (Unpublished Changes), students see the unit
-if the following conditions are met:
+If the state is Published or Draft (Unpublished Changes), students see the last
+published version of the unit if the following conditions are met:
 
 * The release date for the containing section and subsection has passed. LINK
   TO RELEASE DATES.
