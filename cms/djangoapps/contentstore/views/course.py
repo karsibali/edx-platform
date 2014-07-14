@@ -1036,7 +1036,6 @@ def group_configurations_list_handler(request, course_key_string):
                 course.id,
                 kwargs={'group_configuration_id': new_configuration.id}
             )
-            import ipdb; ipdb.set_trace()
             store.update_item(course, request.user.id)
             return response
     else:
