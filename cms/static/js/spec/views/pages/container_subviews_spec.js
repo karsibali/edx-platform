@@ -1,11 +1,11 @@
 define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sinon", "js/spec_helpers/edit_helpers",
-    "js/views/feedback_prompt", "js/views/pages/container", "js/views/pages/container_subviews",
-    "js/models/xblock_info"],
+        "js/views/feedback_prompt", "js/views/pages/container", "js/views/pages/container_subviews",
+        "js/models/xblock_info"],
     function ($, _, str, create_sinon, edit_helpers, Prompt, ContainerPage, ContainerSubviews, XBlockInfo) {
 
         describe("Container Subviews", function() {
             var model, containerPage, requests, renderContainerPage, respondWithHtml, respondWithJson, fetch,
-                disabledCss = "is-disabled",
+                disabledCss = "is-disabled", defaultXBlockInfo, createXBlockInfo,
                 mockContainerPage = readFixtures('mock/mock-container-page.underscore'),
                 mockContainerXBlockHtml = readFixtures('mock/mock-empty-container-xblock.underscore');
 
@@ -61,6 +61,17 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 respondWithJson(json);
             };
 
+            defaultXBlockInfo = {
+                id: "locator-container", has_changes: false,
+                edited_on: "Jul 02, 2014 at 14:20 UTC", edited_by: "joe",
+                published_on: "Jul 01, 2014 at 12:45 UTC", published_by: "amako",
+                visible_to_staff_only: false
+            };
+
+            createXBlockInfo = function(options) {
+                return _.extend(_.extend({}, defaultXBlockInfo), options);
+            };
+
             describe("PreviewActionController", function () {
                 var viewPublishedCss = '.button-view',
                     previewCss = '.button-preview';
@@ -104,9 +115,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                     lastDraftCss = ".wrapper-last-draft",
                     releaseDateTitleCss = ".wrapper-release .title",
                     releaseDateContentCss = ".wrapper-release .copy",
-                    lastRequest, promptSpies, sendDiscardChangesToServer;
-
-                lastRequest = function() { return requests[requests.length - 1]; };
+                    promptSpies, sendDiscardChangesToServer;
 
                 sendDiscardChangesToServer = function(test) {
                     // Helper function to do the discard operation, up until the server response.
@@ -314,6 +323,52 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                     expect(containerPage.$(releaseDateTitleCss).text()).toContain("Release:");
                     expect(containerPage.$(releaseDateContentCss).text()).
                         toContain('Jul 02, 2014 at 14:20 UTC with Section "Week 1"');
+                });
+
+                describe("Content Visibility", function () {
+                    it("is initially shown to all", function() {
+                        renderContainerPage(mockContainerXBlockHtml, this);
+                        expect(containerPage.$('.lock-checkbox')).not.toBeChecked();
+                        expect(containerPage.$('.wrapper-visibility .copy').text()).toBe('Staff and Students');
+                    });
+
+                    it("can be set to staff only", function() {
+                        renderContainerPage(mockContainerXBlockHtml, this);
+                        containerPage.$('.lock-checkbox').click();
+                        create_sinon.expectJsonRequest(requests, 'POST', '/xblock/locator-container', {
+                            publish: 'make_public',
+                            metadata: { visible_to_staff_only: true }
+                        });
+                        create_sinon.respondWithJson(requests, {});
+                        create_sinon.expectJsonRequest(requests, 'GET', '/xblock/locator-container');
+                        create_sinon.respondWithJson(requests, createXBlockInfo({
+                            "visible_to_staff_only": true
+                        }));
+                        expect(containerPage.$('.lock-checkbox')).toBeChecked();
+                        expect(containerPage.$('.wrapper-visibility .copy').text()).toBe('Staff Only');
+                    });
+
+                    it("can remove staff only setting", function() {
+                        renderContainerPage(mockContainerXBlockHtml, this);
+                        containerPage.$('.lock-checkbox').click();
+                        create_sinon.respondWithJson(requests, createXBlockInfo({
+                            "visible_to_staff_only": true
+                        }));
+                        containerPage.$('.lock-checkbox').click();
+                        create_sinon.respondWithJson(requests, createXBlockInfo({
+                            "visible_to_staff_only": false
+                        }));
+                        expect(containerPage.$('.lock-checkbox')).not.toBeChecked();
+                        expect(containerPage.$('.wrapper-visibility .copy').text()).toBe('Staff and Students');
+                    });
+
+                    it("does not refresh when failing to set staff only", function() {
+                        renderContainerPage(mockContainerXBlockHtml, this);
+                        containerPage.$('.lock-checkbox').click();
+                        create_sinon.respondWithError(requests);
+                        expect(containerPage.$('.lock-checkbox')).not.toBeChecked();
+                        expect(containerPage.$('.wrapper-visibility .copy').text()).toBe('Staff and Students');
+                    });
                 });
             });
 
