@@ -450,7 +450,16 @@ class UnitPublishingTest(ContainerBase):
 
     def test_publishing(self):
         """
-        Test the state changes when a published unit has draft changes.
+        Scenario: The publish title changes based on whether or not draft content exists
+            Given I have a published unit with no unpublished changes
+            When I go the unit page in Studio
+            Then the title in the Publish information box is "Published"
+            And the Publish button is disabled
+            And when I add a component to the unit
+            Then the title in the Publish information box is "Draft (Unpublished changes)"
+            And the Publish button is enabled
+            And when I click the Publish button
+            Then the title in the Publish information box is "Published"
         """
         unit = self.go_to_unit_page()
         self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
@@ -466,7 +475,15 @@ class UnitPublishingTest(ContainerBase):
 
     def test_discard_changes(self):
         """
-        Test the state after discard changes.
+        Scenario: The publish title changes after "Discard Changes" is clicked
+            Given I have a published unit with no unpublished changes
+            When I go the unit page in Studio
+            Then the Discard Changes button is disabled
+            And I add a component to the unit
+            Then the title in the Publish information box is "Draft (Unpublished changes)"
+            And the Discard Changes button is enabled
+            And when I click the Discard Changes button
+            Then the title in the Publish information box is "Published"
         """
         unit = self.go_to_unit_page()
         add_discussion(unit)
