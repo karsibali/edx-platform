@@ -575,7 +575,7 @@ class UnitPublishingTest(ContainerBase):
         Scenario: After locking a unit with release date in the past, it is only visible to staff
             Given I have a published unlocked unit with release date in the past
             When I go to the unit page in Studio
-            And when I click "Hide from students"
+            And when I select "Hide from students"
             And when I click on the View Live Button
             Then I see the content in the unit when logged in as staff
             And when I view the course as a student
@@ -610,7 +610,7 @@ class UnitPublishingTest(ContainerBase):
         Scenario: After unlocking a unit with release date in the past, it is visible to both students and staff
             Given I have a published unlocked unit with release date in the past
             When I go to the unit page in Studio
-            And when I click "Hide from students"
+            And when I deselect "Hide from students"
             And when I click on the View Live Button
             Then I see the content in the unit when logged in as staff
             And when I view the course as a student
