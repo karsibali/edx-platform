@@ -17,18 +17,13 @@ This chapter explains the unit-related tasks you perform when developing your co
 
 For more information on units, see :ref:`Understanding Units`.
 
+You add content to units with :ref:`Course Components`.
 
+.. _Create a Unit:
 
 ****************************
 Create a Unit
 ****************************
-
-
-.. _Add a Component to a Unit:
-
-**************************
-Add a Component to a Unit
-**************************
 
 
 ****************************

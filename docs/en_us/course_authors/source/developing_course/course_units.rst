@@ -1,11 +1,11 @@
-.. _Understanding Units:
+.. _Course Units:
 
 ###################################
-Understanding Units
+Course Units
 ###################################
 
-This chapter explains units from the perspective of both course authors and
-students.
+When working with units in the course outline, ensure you understand the
+following:
 
 * `What is a Unit?`_
 * `Viewing Units in the Outline`_
@@ -13,8 +13,18 @@ students.
 * `Unit States`_
 * `The Unit User Interface`_
 
-For information on working with units as a course author, see :ref:`Working
-with Units`.
+Unit tasks:
+
+* `Create a Unit`_
+
+* `Preview a Unit`_
+* `Reorganize Units`_
+* `Hide a Unit from Students`_
+* `Publish a Unit`_
+* `View a Published Unit`_
+* `Delete a Unit`_
+
+You add content to units with :ref:`Course Components`.
 
 .. _What is a Unit?:
 
@@ -39,7 +49,7 @@ Viewing Units as a Student
 
 To a student using the edX Learning Management System, each unit in the
 subsection appears as a link on the course ribbon at the top of the page. The
-following image shows a subsection that has eight units:
+following image shows a subsection that has seven units, which are circled in the ribbon above the video:
 
 .. image:: ../Images/Units_LMS.png
  :alt: Image of units from the student's point of view
@@ -141,6 +151,7 @@ published version of the unit if the following conditions are met:
 
 * The unit was was not hidden from students. LINK TO HIDE FROM STUDENTS TASK
 
+
 .. _The Unit User Interface:
 
 ************************************************
@@ -158,3 +169,49 @@ Icons
 ===========
 Colors
 ===========
+
+
+
+.. _Create a Unit:
+
+****************************
+Create a Unit
+****************************
+
+
+****************************
+Preview a Unit
+****************************
+
+
+.. _Reorganize Units:
+
+************************************************
+Reorganize Units
+************************************************
+
+
+****************************
+Hide a Unit from Students
+****************************
+
+.. _Publish a Unit:
+
+****************************
+Publish a Unit
+****************************
+
+
+
+****************************
+View a Published Unit
+****************************
+
+
+
+********************************
+Delete a Unit
+********************************
+
+
+

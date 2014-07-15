@@ -11,8 +11,8 @@ course content, with links to more details.
 
 * `Understanding Course Building Blocks`_
 * `Creating New Course Content`_
+* `Making Course Content Visible to Students`_
 * `Revising Content`_
-* `Other Tasks`_
 
 .. _Understanding Course Building Blocks:
 
@@ -26,7 +26,7 @@ See:
 * :ref:`The Course Outline`
 * :ref:`Course Sections`
 * :ref:`Course Subsections`
-* :ref:`Understanding Units`
+* :ref:`Course Units`
 * :ref:`Course Components`
 
 .. _Creating New Course Content:
@@ -46,9 +46,25 @@ See:
 #. :ref:`Create a Section`
 #. :ref:`Create a Subsection`
 #. :ref:`Schedule Release Dates`
-#. :ref:`Add a Component to a Unit`
+#. :ref:`Create a Unit`
 #. :ref:`Add a Component`
-#. :ref:`Publish a Unit`
+
+
+.. _Making Course Content Visible to Students:
+
+******************************************
+Making Course Content Visible to Students
+******************************************
+
+If and when the content you create is visible to students depends on the section and subsection release dates, the publishing status of the unit, and whether content at any level is explicitly hidden from students.
+
+See:
+
+* :ref:`Schedule Release Dates`
+* :ref:`Publish Units`
+* :ref:`Hide Content From Students`
+
+
 
 
 .. _Revising Content:
@@ -64,13 +80,3 @@ WORKFLOW DIAGRAM
 #. :ref:`Add<Add a Component>`, :ref:`edit<Edit a Component>`, or :ref:`delete<Delete a Component>` components.
 #. :ref:`Publish a Unit`
    
-
-.. _Other Tasks:
-
-************************************
-Other Tasks
-************************************
-
-* :ref:`Subsections and Grading`
-* :ref:`Hiding Courseware from Students`
-

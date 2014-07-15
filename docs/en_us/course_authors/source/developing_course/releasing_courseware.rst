@@ -1,7 +1,7 @@
-.. _Releasing Courseware:
+.. _Controlling Content Visibility:
 
 ###################################
-Releasing Courseware
+Controlling Content Visibility
 ###################################
 
 
@@ -10,3 +10,19 @@ Releasing Courseware
 ***********************
 Schedule Release Dates
 ***********************
+
+
+
+.. _Publish Units:
+
+***********************
+Publish Units
+***********************
+
+
+
+.. _Hide Content From Students:
+
+**************************
+Hide Content from Students
+**************************
