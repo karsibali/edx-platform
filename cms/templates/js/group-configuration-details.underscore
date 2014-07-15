@@ -53,7 +53,11 @@
         <% } else { %>
           <li class="group-configuration-usage-text">
             <%= gettext('This Group Configuration is not in use. Start by adding a content experiment to any Unit via the') %>
-            <a href=<%= course_outline_url %>><%= gettext('Course Outline') %></a>
+            <% if (!_.isEmpty(course_outline_url)) { %>
+              <a href=<%= course_outline_url %>><%= gettext('Course Outline') %></a>
+            <% } else { %>
+              <a href='#'><%= gettext('Course Outline') %></a>
+            <% } %>
           </li>
         <% } %>
       </ol>
