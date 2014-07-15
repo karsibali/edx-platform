@@ -55,10 +55,6 @@ The following documentation is available:
 
   Recent changes include: 
 
-  * The `Keys and Credentials for Data Transfers`_ chapter has been updated.
-
-    .. SP: Is the above change large enough to mention here?
-
   * The `Track Student Activity`_ section has been added to the `Student Data`_ chapter.
 
 * `edX Developer's Guide`_
