@@ -80,6 +80,8 @@
 
 .. _Student Data: http://edx.readthedocs.org/projects/edx-partner-course-staff/en/latest/running_course/course_student.html#student-data
 
+.. _Track Student Activity: http://edx.readthedocs.org/projects/edx-partner-course-staff/en/latest/running_course/course_student.html#track-student-activity
+
 .. _Add the Beta Testers: http://edx.readthedocs.org/projects/edx-partner-course-staff/en/latest/releasing_course/beta_testing.html#add-testers
 
 .. _Getting Started: http://edx.readthedocs.org/projects/edx-partner-course-staff/en/latest/getting_started/index.html#getting-started-index
@@ -210,3 +212,5 @@
 .. _Analytics: http://edx.readthedocs.org/projects/userdocs/en/latest/analytics.html
 
 .. _Opaque Keys: https://github.com/edx/edx-platform/wiki/Opaque-Keys
+
+.. _Ubuntu installation instructions: https://github.com/edx/configuration/wiki/edX-Ubuntu-12.04-64-bit-Installation
