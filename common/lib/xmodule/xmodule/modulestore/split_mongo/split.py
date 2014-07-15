@@ -1051,12 +1051,14 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
             'edited_on': datetime.datetime.now(UTC),
             'versions': versions_dict,
             'schema_version': self.SCHEMA_VERSION,
-            'search_targets': search_targets,
+            'search_targets': search_targets or {},
         }
         if fields is not None:
             self._update_search_targets(index_entry, fields)
         self.db_connection.insert_course_index(index_entry)
-        return self.get_course(locator)
+        # expensive hack to persist default field values set in __init__ method (e.g., wiki_slug)
+        course = self.get_course(locator)
+        return self.update_item(course, user_id)
 
     def update_item(self, descriptor, user_id, allow_not_found=False, force=False):
         """
@@ -1667,7 +1669,7 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
         """
         for field_name, field_value in fields.iteritems():
             if field_name in self.SEARCH_TARGET_DICT:
-                index_entry[field_name] = field_value
+                index_entry.setdefault('search_targets', {})[field_name] = field_value
 
     def _update_head(self, index_entry, branch, new_id):
         """
