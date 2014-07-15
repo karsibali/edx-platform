@@ -108,8 +108,8 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
             describe("Publisher", function () {
                 var headerCss = '.pub-status',
                     bitPublishingCss = "div.bit-publishing",
-                    publishedBit = "published",
-                    draftBit = "draft",
+                    publishedBit = "is-published",
+                    draftBit = "is-draft",
                     publishButtonCss = ".action-publish",
                     discardChangesButtonCss = ".action-discard",
                     lastDraftCss = ".wrapper-last-draft",
@@ -143,10 +143,11 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 it('renders correctly with private content', function () {
                     var verifyPrivateState = function(){
                         // State is the same regardless of "has_changes" value.
-                        expect(containerPage.$(headerCss).text()).toContain('Draft (Unpublished changes)');
+                        expect(containerPage.$(headerCss).text()).toContain('Draft (Never published)');
                         expect(containerPage.$(publishButtonCss)).not.toHaveClass(disabledCss);
                         expect(containerPage.$(discardChangesButtonCss)).toHaveClass(disabledCss);
-                        expect(containerPage.$(bitPublishingCss)).toHaveClass(draftBit);
+                        expect(containerPage.$(bitPublishingCss)).not.toHaveClass(draftBit);
+                        expect(containerPage.$(bitPublishingCss)).not.toHaveClass(publishedBit);
                     };
                     renderContainerPage(mockContainerXBlockHtml, this);
                     fetch({"id": "locator-container", "published": false, "has_changes": false});
@@ -175,7 +176,8 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                     var notificationSpy = edit_helpers.createNotificationSpy();
                     renderContainerPage(mockContainerXBlockHtml, this);
                     fetch({"id": "locator-container", "published": false, "has_changes": false});
-                    expect(containerPage.$(bitPublishingCss)).toHaveClass(draftBit);
+                    expect(containerPage.$(bitPublishingCss)).not.toHaveClass(draftBit);
+                    expect(containerPage.$(bitPublishingCss)).not.toHaveClass(publishedBit);
 
                     // Click publish
                     containerPage.$(publishButtonCss).click();
@@ -202,7 +204,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 it('can does not fetch if publish fails', function () {
                     renderContainerPage(mockContainerXBlockHtml, this);
                     fetch({"id": "locator-container", "published": false, "has_changes": false});
-                    expect(containerPage.$(bitPublishingCss)).toHaveClass(draftBit);
+                    expect(containerPage.$(bitPublishingCss)).not.toHaveClass(publishedBit);
 
                     // Click publish
                     containerPage.$(publishButtonCss).click();
@@ -214,7 +216,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                     expect(requests.length).toEqual(numRequests);
 
                     // Verify still in draft state.
-                    expect(containerPage.$(bitPublishingCss)).toHaveClass(draftBit);
+                    expect(containerPage.$(bitPublishingCss)).not.toHaveClass(publishedBit);
                     // Verify that the "published" value has been cleared out of the model.
                     expect(containerPage.model.get("publish")).toBeNull();
                 });
