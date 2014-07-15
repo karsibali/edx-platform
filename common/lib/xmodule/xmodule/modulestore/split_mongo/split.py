@@ -891,7 +891,8 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
         # update the index entry if appropriate
         if index_entry is not None:
             # see if any search targets changed
-            self._update_search_targets(index_entry, fields)
+            if fields is not None:
+                self._update_search_targets(index_entry, fields)
             if not continue_version:
                 self._update_head(index_entry, course_or_parent_locator.branch, new_id)
             item_loc = BlockUsageLocator(
@@ -1052,7 +1053,8 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
             'schema_version': self.SCHEMA_VERSION,
             'search_targets': search_targets,
         }
-        self._update_search_targets(index_entry, fields)
+        if fields is not None:
+            self._update_search_targets(index_entry, fields)
         self.db_connection.insert_course_index(index_entry)
         return self.get_course(locator)
 
