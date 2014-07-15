@@ -351,12 +351,16 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                     });
 
                     it("can remove staff only setting", function() {
+                        var promptSpy = edit_helpers.createPromptSpy();
                         renderContainerPage(mockContainerXBlockHtml, this);
                         containerPage.$('.lock-checkbox').click();
+                        create_sinon.respondWithJson(requests, {});
                         create_sinon.respondWithJson(requests, createXBlockInfo({
                             "visible_to_staff_only": true
                         }));
                         containerPage.$('.lock-checkbox').click();
+                        edit_helpers.confirmPrompt(promptSpy);    // Click 'Yes' to confirm
+                        create_sinon.respondWithJson(requests, {});
                         create_sinon.respondWithJson(requests, createXBlockInfo({
                             "visible_to_staff_only": false
                         }));
