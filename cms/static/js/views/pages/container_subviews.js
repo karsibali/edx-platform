@@ -135,15 +135,19 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
 
             toggleStaffLock: function (e) {
                 var xblockInfo = this.model, self=this, enableStaffLock,
-                    saveAndPublishStaffLock;
+                    saveAndPublishStaffLock, revertCheckBox;
                 if (e && e.preventDefault) {
                     e.preventDefault();
                 }
                 enableStaffLock = !xblockInfo.get('visible_to_staff_only');
 
+                revertCheckBox = function() {
+                    self.checkStaffLock(!enableStaffLock);
+                };
+
                 saveAndPublishStaffLock = function() {
                     return xblockInfo.save({
-                        publish: 'make_public',
+                        publish: 'republish',
                         metadata: {visible_to_staff_only: enableStaffLock}},
                         {patch: true}
                     ).always(function() {
@@ -151,7 +155,7 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
                     }).done(function () {
                         xblockInfo.fetch();
                     }).fail(function() {
-                        self.checkStaffLock(!enableStaffLock);
+                        revertCheckBox();
                     });
                 };
 
@@ -163,9 +167,13 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
                     ViewUtils.confirmThenRunOperation(gettext("Remove Staff Lock"),
                         gettext("Are you sure you want to remove the staff lock? Once you publish this unit, it will be released to students on the release date."),
                         gettext("Remove Staff Lock"),
-                        function () {
+                        function() {
                             ViewUtils.runOperationShowingMessage(gettext('Removing Staff Lock&hellip;'),
                                 _.bind(saveAndPublishStaffLock, self));
+                        },
+                        function() {
+                            // On cancel, revert the check in the check box
+                            revertCheckBox();
                         }
                     );
                 }

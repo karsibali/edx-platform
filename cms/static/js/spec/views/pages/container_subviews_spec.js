@@ -4,7 +4,8 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
     function ($, _, str, create_sinon, edit_helpers, Prompt, ContainerPage, ContainerSubviews, XBlockInfo) {
 
         describe("Container Subviews", function() {
-            var model, containerPage, requests, renderContainerPage, respondWithHtml, respondWithJson, fetch,
+            var model, containerPage, requests, createContainerPage, renderContainerPage,
+                respondWithHtml, respondWithJson, fetch,
                 disabledCss = "is-disabled", defaultXBlockInfo, createXBlockInfo,
                 mockContainerPage = readFixtures('mock/mock-container-page.underscore'),
                 mockContainerXBlockHtml = readFixtures('mock/mock-empty-container-xblock.underscore');
@@ -15,26 +16,36 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 edit_helpers.installTemplate('publish-history');
                 edit_helpers.installTemplate('unit-outline');
                 appendSetFixtures(mockContainerPage);
+            });
 
-                model = new XBlockInfo({
-                    id: 'locator-container',
-                    display_name: 'Test Container',
-                    category: 'vertical',
-                    published: false,
-                    has_changes: false
-                }, {
-                    parse: true
-                });
+            defaultXBlockInfo = {
+                id: 'locator-container',
+                display_name: 'Test Container',
+                category: 'vertical',
+                published: false,
+                has_changes: false,
+                edited_on: "Jul 02, 2014 at 14:20 UTC", edited_by: "joe",
+                published_on: "Jul 01, 2014 at 12:45 UTC", published_by: "amako",
+                visible_to_staff_only: false
+            };
+
+            createXBlockInfo = function(options) {
+                return _.extend(_.extend({}, defaultXBlockInfo), options || {});
+            };
+
+            createContainerPage = function (test, options) {
+                requests = create_sinon.requests(test);
+                model = new XBlockInfo(createXBlockInfo(options), { parse: true });
                 containerPage = new ContainerPage({
                     model: model,
                     templates: edit_helpers.mockComponentTemplates,
                     el: $('#content'),
                     isUnitPage: true
                 });
-            });
+            };
 
-            renderContainerPage = function(html, that) {
-                requests = create_sinon.requests(that);
+            renderContainerPage = function (test, html, options) {
+                createContainerPage(test, options);
                 containerPage.render();
                 respondWithHtml(html);
             };
@@ -61,29 +72,18 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 respondWithJson(json);
             };
 
-            defaultXBlockInfo = {
-                id: "locator-container", has_changes: false,
-                edited_on: "Jul 02, 2014 at 14:20 UTC", edited_by: "joe",
-                published_on: "Jul 01, 2014 at 12:45 UTC", published_by: "amako",
-                visible_to_staff_only: false
-            };
-
-            createXBlockInfo = function(options) {
-                return _.extend(_.extend({}, defaultXBlockInfo), options);
-            };
-
             describe("PreviewActionController", function () {
                 var viewPublishedCss = '.button-view',
                     previewCss = '.button-preview';
 
                 it('renders correctly for private unit', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     expect(containerPage.$(viewPublishedCss)).toHaveClass(disabledCss);
                     expect(containerPage.$(previewCss)).not.toHaveClass(disabledCss);
                 });
 
                 it('updates when published attribute changes', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     fetch({"id": "locator-container", "published": true});
                     expect(containerPage.$(viewPublishedCss)).not.toHaveClass(disabledCss);
 
@@ -92,7 +92,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 });
 
                 it('updates when has_changes attribute changes', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     fetch({"id": "locator-container", "has_changes": true});
                     expect(containerPage.$(previewCss)).not.toHaveClass(disabledCss);
 
@@ -110,6 +110,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                     bitPublishingCss = "div.bit-publishing",
                     publishedBit = "is-published",
                     draftBit = "is-draft",
+                    staffOnlyBit = "is-staff-only",
                     publishButtonCss = ".action-publish",
                     discardChangesButtonCss = ".action-discard",
                     lastDraftCss = ".wrapper-last-draft",
@@ -117,9 +118,10 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                     releaseDateContentCss = ".wrapper-release .copy",
                     promptSpies, sendDiscardChangesToServer;
 
-                sendDiscardChangesToServer = function(test) {
+                sendDiscardChangesToServer = function() {
                     // Helper function to do the discard operation, up until the server response.
-                    renderContainerPage(mockContainerXBlockHtml, test);
+                    containerPage.render();
+                    respondWithHtml(mockContainerXBlockHtml);
                     fetch({"id": "locator-container", "published": true, "has_changes": true});
                     expect(containerPage.$(discardChangesButtonCss)).not.toHaveClass('is-disabled');
                     expect(containerPage.$(bitPublishingCss)).toHaveClass(draftBit);
@@ -149,7 +151,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                         expect(containerPage.$(bitPublishingCss)).not.toHaveClass(draftBit);
                         expect(containerPage.$(bitPublishingCss)).not.toHaveClass(publishedBit);
                     };
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     fetch({"id": "locator-container", "published": false, "has_changes": false});
                     verifyPrivateState();
 
@@ -158,7 +160,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 });
 
                 it('renders correctly with public content', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     fetch({"id": "locator-container", "published": true, "has_changes": false});
                     expect(containerPage.$(headerCss).text()).toContain('Published');
                     expect(containerPage.$(publishButtonCss)).toHaveClass(disabledCss);
@@ -174,7 +176,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
 
                 it('can publish private content', function () {
                     var notificationSpy = edit_helpers.createNotificationSpy();
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     fetch({"id": "locator-container", "published": false, "has_changes": false});
                     expect(containerPage.$(bitPublishingCss)).not.toHaveClass(draftBit);
                     expect(containerPage.$(bitPublishingCss)).not.toHaveClass(publishedBit);
@@ -202,7 +204,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 });
 
                 it('can does not fetch if publish fails', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     fetch({"id": "locator-container", "published": false, "has_changes": false});
                     expect(containerPage.$(bitPublishingCss)).not.toHaveClass(publishedBit);
 
@@ -222,11 +224,12 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 });
 
                 it('can discard changes', function () {
-                    var notificationSpy = edit_helpers.createNotificationSpy(),
-                        renderPageSpy = spyOn(containerPage.xblockPublisher, 'renderPage').andCallThrough(),
-                        numRequests;
+                    var notificationSpy, renderPageSpy, numRequests;
+                    createContainerPage(this);
+                    notificationSpy = edit_helpers.createNotificationSpy();
+                    renderPageSpy = spyOn(containerPage.xblockPublisher, 'renderPage').andCallThrough();
 
-                    sendDiscardChangesToServer(this);
+                    sendDiscardChangesToServer();
                     numRequests = requests.length;
 
                     // Respond with success.
@@ -241,10 +244,11 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 });
 
                 it('does not fetch if discard changes fails', function () {
-                    var renderPageSpy = spyOn(containerPage.xblockPublisher, 'renderPage').andCallThrough(),
-                        numRequests;
+                    var renderPageSpy, numRequests;
+                    createContainerPage(this);
+                    renderPageSpy = spyOn(containerPage.xblockPublisher, 'renderPage').andCallThrough();
 
-                    sendDiscardChangesToServer(this);
+                    sendDiscardChangesToServer();
                     numRequests = requests.length;
 
                     // Respond with failure
@@ -257,7 +261,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 });
 
                 it('does not discard changes on cancel', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     fetch({"id": "locator-container", "published": true, "has_changes": true});
                     var numRequests = requests.length;
 
@@ -273,7 +277,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 });
 
                 it('renders the last published date and user when there are no changes', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     fetch({ "id": "locator-container", "has_changes": false,
                         "edited_on": "Jun 30, 2014 at 14:20 UTC", "edited_by": "joe",
                         "published_on": "Jul 01, 2014 at 12:45 UTC", "published_by": "amako"});
@@ -282,7 +286,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 });
 
                 it('renders the last saved date and user when there are changes', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     fetch({ "id": "locator-container", "has_changes": true,
                         "edited_on": "Jul 02, 2014 at 14:20 UTC", "edited_by": "joe",
                         "published_on": "Jul 01, 2014 at 12:45 UTC", "published_by": "amako"});
@@ -290,90 +294,136 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                         toContain("Draft saved on Jul 02, 2014 at 14:20 UTC by joe");
                 });
 
-                it('renders the release date correctly when unreleased', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
-                    fetch({ "id": "locator-container", "published": true, "released_to_students": false,
-                        "release_date": "Jul 02, 2014 at 14:20 UTC", "release_date_from": 'Section "Week 1"'});
-                    expect(containerPage.$(releaseDateTitleCss).text()).toContain("Scheduled:");
-                    expect(containerPage.$(releaseDateContentCss).text()).
-                        toContain('Jul 02, 2014 at 14:20 UTC with Section "Week 1"');
-                });
+                describe("Release Date", function() {
+                    it('renders correctly when unreleased', function () {
+                        renderContainerPage(this, mockContainerXBlockHtml);
+                        fetch({ "id": "locator-container", "published": true, "released_to_students": false,
+                            "release_date": "Jul 02, 2014 at 14:20 UTC", "release_date_from": 'Section "Week 1"'});
+                        expect(containerPage.$(releaseDateTitleCss).text()).toContain("Scheduled:");
+                        expect(containerPage.$(releaseDateContentCss).text()).
+                            toContain('Jul 02, 2014 at 14:20 UTC with Section "Week 1"');
+                    });
 
-                it('renders the release date correctly when released', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
-                    fetch({ "id": "locator-container", "published": true, "released_to_students": true,
-                        "release_date": "Jul 02, 2014 at 14:20 UTC", "release_date_from": 'Section "Week 1"' });
-                    expect(containerPage.$(releaseDateTitleCss).text()).toContain("Released:");
-                    expect(containerPage.$(releaseDateContentCss).text()).
-                        toContain('Jul 02, 2014 at 14:20 UTC with Section "Week 1"');
-                });
+                    it('renders correctly when released', function () {
+                        renderContainerPage(this, mockContainerXBlockHtml);
+                        fetch({ "id": "locator-container", "published": true, "released_to_students": true,
+                            "release_date": "Jul 02, 2014 at 14:20 UTC", "release_date_from": 'Section "Week 1"' });
+                        expect(containerPage.$(releaseDateTitleCss).text()).toContain("Released:");
+                        expect(containerPage.$(releaseDateContentCss).text()).
+                            toContain('Jul 02, 2014 at 14:20 UTC with Section "Week 1"');
+                    });
 
-                it('renders the release date correctly when the release date is not set', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
-                    fetch({ "id": "locator-container", "published": true, "released_to_students": false,
-                        "release_date": null, "release_date_from": null });
-                    expect(containerPage.$(releaseDateTitleCss).text()).toContain("Release:");
-                    expect(containerPage.$(releaseDateContentCss).text()).toContain("Unscheduled");
-                });
+                    it('renders correctly when the release date is not set', function () {
+                        renderContainerPage(this, mockContainerXBlockHtml);
+                        fetch({ "id": "locator-container", "published": true, "released_to_students": false,
+                            "release_date": null, "release_date_from": null });
+                        expect(containerPage.$(releaseDateTitleCss).text()).toContain("Release:");
+                        expect(containerPage.$(releaseDateContentCss).text()).toContain("Unscheduled");
+                    });
 
-                it('renders the release date correctly when the unit is not published', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
-                    fetch({ "id": "locator-container", "published": false, "released_to_students": true,
-                        "release_date": "Jul 02, 2014 at 14:20 UTC", "release_date_from": 'Section "Week 1"' });
-                    // Force a render because none of the fetched fields will trigger a render
-                    containerPage.xblockPublisher.render();
-                    expect(containerPage.$(releaseDateTitleCss).text()).toContain("Release:");
-                    expect(containerPage.$(releaseDateContentCss).text()).
-                        toContain('Jul 02, 2014 at 14:20 UTC with Section "Week 1"');
+                    it('renders correctly when the unit is not published', function () {
+                        renderContainerPage(this, mockContainerXBlockHtml);
+                        fetch({ "id": "locator-container", "published": false, "released_to_students": true,
+                            "release_date": "Jul 02, 2014 at 14:20 UTC", "release_date_from": 'Section "Week 1"' });
+                        // Force a render because none of the fetched fields will trigger a render
+                        containerPage.xblockPublisher.render();
+                        expect(containerPage.$(releaseDateTitleCss).text()).toContain("Release:");
+                        expect(containerPage.$(releaseDateContentCss).text()).
+                            toContain('Jul 02, 2014 at 14:20 UTC with Section "Week 1"');
+                    });
                 });
 
                 describe("Content Visibility", function () {
+                    var requestStaffOnly, verifyStaffOnly, promptSpy;
+
+                    requestStaffOnly = function(isStaffOnly) {
+                        containerPage.$('.lock-checkbox').click();
+
+                        // If removing the staff lock, click 'Yes' to confirm
+                        if (!isStaffOnly) {
+                            edit_helpers.confirmPrompt(promptSpy);
+                        }
+
+                        create_sinon.expectJsonRequest(requests, 'POST', '/xblock/locator-container', {
+                            publish: 'republish',
+                            metadata: { visible_to_staff_only: isStaffOnly }
+                        });
+                        create_sinon.respondWithJson(requests, {
+                            data: null,
+                            id: "locator-container",
+                            metadata: {
+                                visible_to_staff_only: isStaffOnly
+                            }
+                        });
+                        create_sinon.expectJsonRequest(requests, 'GET', '/xblock/locator-container');
+                        create_sinon.respondWithJson(requests, createXBlockInfo({
+                            published: containerPage.model.get('published'),
+                            visible_to_staff_only: isStaffOnly
+                        }));
+                    };
+
+                    verifyStaffOnly = function(isStaffOnly) {
+                        if (isStaffOnly) {
+                            expect(containerPage.$('.lock-checkbox')).toBeChecked();
+                            expect(containerPage.$('.wrapper-visibility .copy').text()).toBe('Staff Only');
+                            expect(containerPage.$(bitPublishingCss)).toHaveClass(staffOnlyBit);
+                        } else {
+                            expect(containerPage.$('.lock-checkbox')).not.toBeChecked();
+                            expect(containerPage.$('.wrapper-visibility .copy').text()).toBe('Staff and Students');
+                            expect(containerPage.$(bitPublishingCss)).not.toHaveClass(staffOnlyBit);
+                        }
+                    };
+
                     it("is initially shown to all", function() {
-                        renderContainerPage(mockContainerXBlockHtml, this);
-                        expect(containerPage.$('.lock-checkbox')).not.toBeChecked();
-                        expect(containerPage.$('.wrapper-visibility .copy').text()).toBe('Staff and Students');
+                        renderContainerPage(this, mockContainerXBlockHtml);
+                        verifyStaffOnly(false);
                     });
 
                     it("can be set to staff only", function() {
-                        renderContainerPage(mockContainerXBlockHtml, this);
+                        renderContainerPage(this, mockContainerXBlockHtml);
                         containerPage.$('.lock-checkbox').click();
-                        create_sinon.expectJsonRequest(requests, 'POST', '/xblock/locator-container', {
-                            publish: 'make_public',
-                            metadata: { visible_to_staff_only: true }
-                        });
-                        create_sinon.respondWithJson(requests, {});
-                        create_sinon.expectJsonRequest(requests, 'GET', '/xblock/locator-container');
-                        create_sinon.respondWithJson(requests, createXBlockInfo({
-                            "visible_to_staff_only": true
-                        }));
-                        expect(containerPage.$('.lock-checkbox')).toBeChecked();
-                        expect(containerPage.$('.wrapper-visibility .copy').text()).toBe('Staff Only');
+                        requestStaffOnly(true);
+                        verifyStaffOnly(true);
                     });
 
                     it("can remove staff only setting", function() {
-                        var promptSpy = edit_helpers.createPromptSpy();
-                        renderContainerPage(mockContainerXBlockHtml, this);
+                        promptSpy = edit_helpers.createPromptSpy();
+                        renderContainerPage(this, mockContainerXBlockHtml);
+                        requestStaffOnly(true);
+                        requestStaffOnly(false);
+                        verifyStaffOnly(false);
+                        expect(containerPage.$(bitPublishingCss)).not.toHaveClass(publishedBit);
+                    });
+
+                    it("can remove staff only setting from published unit", function() {
+                        promptSpy = edit_helpers.createPromptSpy();
+                        renderContainerPage(this, mockContainerXBlockHtml, { published: true });
+                        requestStaffOnly(true);
+                        requestStaffOnly(false);
+                        verifyStaffOnly(false);
+                        expect(containerPage.$(bitPublishingCss)).toHaveClass(publishedBit);
+                    });
+
+                    it("does not refresh if removing staff only is canceled", function() {
+                        var requestCount;
+                        promptSpy = edit_helpers.createPromptSpy();
+                        renderContainerPage(this, mockContainerXBlockHtml);
+                        requestStaffOnly(true);
+                        requestCount = requests.length;
                         containerPage.$('.lock-checkbox').click();
-                        create_sinon.respondWithJson(requests, {});
-                        create_sinon.respondWithJson(requests, createXBlockInfo({
-                            "visible_to_staff_only": true
-                        }));
-                        containerPage.$('.lock-checkbox').click();
-                        edit_helpers.confirmPrompt(promptSpy);    // Click 'Yes' to confirm
-                        create_sinon.respondWithJson(requests, {});
-                        create_sinon.respondWithJson(requests, createXBlockInfo({
-                            "visible_to_staff_only": false
-                        }));
-                        expect(containerPage.$('.lock-checkbox')).not.toBeChecked();
-                        expect(containerPage.$('.wrapper-visibility .copy').text()).toBe('Staff and Students');
+                        edit_helpers.confirmPrompt(promptSpy, true);    // Click 'No' to cancel
+                        expect(requests.length).toBe(requestCount);
+                        verifyStaffOnly(true);
                     });
 
                     it("does not refresh when failing to set staff only", function() {
-                        renderContainerPage(mockContainerXBlockHtml, this);
+                        var requestCount;
+                        renderContainerPage(this, mockContainerXBlockHtml);
                         containerPage.$('.lock-checkbox').click();
+                        requestCount = requests.length;
                         create_sinon.respondWithError(requests);
-                        expect(containerPage.$('.lock-checkbox')).not.toBeChecked();
-                        expect(containerPage.$('.wrapper-visibility .copy').text()).toBe('Staff and Students');
+                        expect(requests.length).toBe(requestCount);
+                        verifyStaffOnly(false);
                     });
                 });
             });
@@ -382,7 +432,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 var lastPublishCss = ".wrapper-last-publish";
 
                 it('renders the last published date and user when the block is published', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     fetch({ "id": "locator-container", "published": true,
                         "published_on": "Jul 01, 2014 at 12:45 UTC", "published_by": "amako" });
                     expect(containerPage.$(lastPublishCss).text()).
@@ -390,14 +440,14 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 });
 
                 it('renders never published when the block is unpublished', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     fetch({ "id": "locator-container", "published": false,
                         "published_on": "Jul 01, 2014 at 12:45 UTC", "published_by": "amako" });
                     expect(containerPage.$(lastPublishCss).text()).toContain("Never published");
                 });
 
                 it('renders correctly when the block is published without publish info', function () {
-                    renderContainerPage(mockContainerXBlockHtml, this);
+                    renderContainerPage(this, mockContainerXBlockHtml);
                     fetch({ "id": "locator-container", "published": true, "published_on": null, "published_by": null});
                     expect(containerPage.$(lastPublishCss).text()).toContain("Previously published");
                 });

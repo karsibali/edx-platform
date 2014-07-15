@@ -95,10 +95,12 @@ def xblock_handler(request, usage_key_string):
                        to None! Absent ones will be left alone.
                 :nullout: which metadata fields to set to None
                 :graderType: change how this unit is graded
-                :publish: can be either -- 'make_public' (which publishes the content) or 'discard_changes'
-                       (which reverts to the last published version). If 'discard_changes', the other fields
-                       will not be used; that is, it is not possible to update and discard changes
-                       in a single operation.
+                :publish: can be:
+                  'make_public': publish the content
+                  'republish': publish this item *only* if it was previously published
+                  'discard_changes' - reverts to the last published version
+                Note: If 'discard_changes', the other fields will not be used; that is, it is not possible
+                to update and discard changes in a single operation.
               The JSON representation on the updated xblock (minus children) is returned.
 
               if usage_key_string is not specified, create a new xblock instance, either by duplicating
@@ -388,10 +390,18 @@ def _save_item(user, usage_key, data=None, children=None, metadata=None, nullout
     if grader_type is not None:
         result.update(CourseGradingModel.update_section_grader_type(existing_item, grader_type, user))
 
+    # If publish is set to 'republish' and this item has previously been published, then this
+    # new item should be republished. This is used by staff locking to ensure that changing the draft
+    # value of the staff lock will also update the published version.
+    if publish == 'republish':
+        published = modulestore().has_item(usage_key, revision=ModuleStoreEnum.RevisionOption.published_only)
+        if published:
+            publish = 'make_public'
+
     # Make public after updating the xblock, in case the caller asked for both an update and a publish.
-    # Used by Bok Choy tests and staff locking.
+    # Used by Bok Choy tests and by republishing of staff locks.
     if publish == 'make_public':
-        modulestore().publish(existing_item.location, user.id)
+        modulestore().publish(usage_key, user.id)
 
     # Note that children aren't being returned until we have a use case.
     return JsonResponse(result)
