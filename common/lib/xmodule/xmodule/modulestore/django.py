@@ -26,6 +26,8 @@ try:
 except ImportError:
     HAS_REQUEST_CACHE = False
 
+ASSET_IGNORE_REGEX = getattr(settings, "ASSET_IGNORE_REGEX", r"(^\._.*$)|(^\.DS_Store$)|(^.*~$)")
+
 
 def load_function(path):
     """

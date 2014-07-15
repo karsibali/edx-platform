@@ -261,6 +261,9 @@ FEATURES = {
     'SHOW_PROGRESS_SUCCESS_BUTTON': False,
 }
 
+# Ignore static asset files on import which match this pattern
+ASSET_IGNORE_REGEX = r"(^\._.*$)|(^\.DS_Store$)|(^.*~$)"
+
 # Used for A/B testing
 DEFAULT_GROUPS = []
 
