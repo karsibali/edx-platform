@@ -12,9 +12,12 @@ from .helpers import UniqueCourseTest
 from ..pages.studio.component_editor import ComponentEditorView
 from ..pages.studio.utils import add_discussion
 from ..pages.lms.courseware import CoursewarePage
+from ..pages.lms.staff_view import StaffPage
 
 from unittest import skip
+import datetime
 from bok_choy.promise import Promise
+
 
 class ContainerBase(UniqueCourseTest):
     """
@@ -60,15 +63,15 @@ class ContainerBase(UniqueCourseTest):
         container = unit.xblocks[1].go_to_container()
         return container
 
-    def go_to_unit_page(self):
+    def go_to_unit_page(self, section_name='Test Section', subsection_name='Test Subsection', unit_name='Test Unit'):
         """
         Go to the test unit page.
 
         If make_draft is true, the unit page will be put into draft mode.
         """
         self.outline.visit()
-        subsection = self.outline.section('Test Section').subsection('Test Subsection')
-        return subsection.toggle_expand().unit('Test Unit').go_to()
+        subsection = self.outline.section(section_name).subsection(subsection_name)
+        return subsection.toggle_expand().unit(unit_name).go_to()
 
     def verify_ordering(self, container, expected_orderings):
         """
@@ -421,6 +424,7 @@ class UnitPublishingTest(ContainerBase):
 
     PUBLISHED_STATUS = "Publishing Status\nPublished"
     DRAFT_STATUS = "Publishing Status\nDraft (Unpublished changes)"
+    LOCKED_STATUS = "Publishing Status\nUnpublished (Staff only)"
 
     def setup_fixtures(self):
         """
@@ -435,12 +439,28 @@ class UnitPublishingTest(ContainerBase):
             self.course_info['run'],
             self.course_info['display_name']
         )
+        
+        past_start_date = datetime.datetime(1974, 6, 22)
 
         course_fix.add_children(
             XBlockFixtureDesc('chapter', 'Test Section').add_children(
                 XBlockFixtureDesc('sequential', 'Test Subsection').add_children(
                     XBlockFixtureDesc('vertical', 'Test Unit').add_children(
                         XBlockFixtureDesc('html', 'Test html', data=self.html_content)
+                    )
+                )
+            ),
+            XBlockFixtureDesc('chapter', 'Unlocked Section', metadata={'start': past_start_date.isoformat()}).add_children(
+                XBlockFixtureDesc('sequential', 'Unlocked Subsection').add_children(
+                    XBlockFixtureDesc('vertical', 'Unlocked Unit').add_children(
+                        XBlockFixtureDesc('problem', '<problem></problem>', data=self.html_content)
+                    )
+                )
+            ),
+            XBlockFixtureDesc('chapter', 'Section With Locked Unit', metadata={'start': past_start_date.isoformat()}).add_children(
+                XBlockFixtureDesc('sequential', 'Subsection With Locked Unit').add_children(
+                    XBlockFixtureDesc('vertical', 'Locked Unit', metadata={'visible_to_staff_only': True}).add_children(
+                        XBlockFixtureDesc('discussion', '', data=self.html_content)
                     )
                 )
             )
@@ -452,7 +472,7 @@ class UnitPublishingTest(ContainerBase):
         """
         Scenario: The publish title changes based on whether or not draft content exists
             Given I have a published unit with no unpublished changes
-            When I go the unit page in Studio
+            When I go to the unit page in Studio
             Then the title in the Publish information box is "Published"
             And the Publish button is disabled
             And when I add a component to the unit
@@ -477,7 +497,7 @@ class UnitPublishingTest(ContainerBase):
         """
         Scenario: The publish title changes after "Discard Changes" is clicked
             Given I have a published unit with no unpublished changes
-            When I go the unit page in Studio
+            When I go to the unit page in Studio
             Then the Discard Changes button is disabled
             And I add a component to the unit
             Then the title in the Publish information box is "Draft (Unpublished changes)"
@@ -493,35 +513,140 @@ class UnitPublishingTest(ContainerBase):
 
     def test_view_live_no_changes(self):
         """
-        Tests viewing of live with initial published content.
+        Scenario: "View Live" shows published content in LMS
+            Given I have a published unit with no unpublished changes
+            When I go to the unit page in Studio
+            Then the View Live button is enabled
+            And when I click on the View Live button
+            Then I see the published content in LMS
         """
         unit = self.go_to_unit_page()
         unit.view_published_version()
-        self.assertEqual(1, self.courseware.num_xblock_components)
-        self.assertEqual('html', self.courseware.xblock_component_type(0))
+        self._verify_components_visible(['html'])
 
     def test_view_live_changes(self):
         """
-        Tests that viewing of live with draft content does not show the draft content.
+        Scenario: "View Live" does not show draft content in LMS
+            Given I have a published unit with no unpublished changes
+            When I go to the unit page in Studio
+            And when I add a component to the unit
+            And when I click on the View Live button
+            Then I see the published content in LMS
+            And I do not see the unpublished component
         """
         unit = self.go_to_unit_page()
         add_discussion(unit)
         unit.view_published_version()
-        self.assertEqual(1, self.courseware.num_xblock_components)
-        self.assertEqual('html', self.courseware.xblock_component_type(0))
+        self._verify_components_visible(['html'])
         self.assertEqual(self.html_content, self.courseware.xblock_component_html_content(0))
 
     def test_view_live_after_publish(self):
         """
-        Tests viewing of live after creating draft and publishing it.
+        Scenario: "View Live" shows newly published content
+            Given I have a published unit with no unpublished changes
+            When I go to the unit page in Studio
+            And when I add a component to the unit
+            And when I click the Publish button
+            And when I click on the View Live button
+            Then I see the newly published component
         """
         unit = self.go_to_unit_page()
         add_discussion(unit)
         unit.publish_action.click()
         unit.view_published_version()
-        self.assertEqual(2, self.courseware.num_xblock_components)
-        self.assertEqual('html', self.courseware.xblock_component_type(0))
-        self.assertEqual('discussion', self.courseware.xblock_component_type(1))
+        self._verify_components_visible(['html', 'discussion'])
+
+    def test_initially_unlocked_visible_to_students(self):
+        """
+        Scenario: An unlocked unit with release date in the past is visible to students
+            Given I have a published unlocked unit with release date in the past
+            When I go to the unit page in Studio
+            And when I click on the View Live Button
+            And when I view the course as a student
+            Then I see the content in the unit
+        """
+        unit = self.go_to_unit_page("Unlocked Section", "Unlocked Subsection", "Unlocked Unit")
+        self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
+        unit.view_published_version()
+        self._verify_student_view_visible(['problem'])
+
+    def test_locked_visible_to_staff_only(self):
+        """
+        Scenario: After locking a unit with release date in the past, it is only visible to staff
+            Given I have a published unlocked unit with release date in the past
+            When I go to the unit page in Studio
+            And when I click "Hide from students"
+            And when I click on the View Live Button
+            Then I see the content in the unit when logged in as staff
+            And when I view the course as a student
+            Then I do not see any content in the unit
+        """
+        unit = self.go_to_unit_page("Unlocked Section", "Unlocked Subsection", "Unlocked Unit")
+        checked = unit.toggle_staff_lock()
+        self.assertTrue(checked)
+        self.assertEqual(self.LOCKED_STATUS, unit.publish_title)
+        unit.view_published_version()
+        # Will initially be in staff view, locked component should be visible.
+        self._verify_components_visible(['problem'])
+        # Switch to student view and verify not visible
+        self._verify_student_view_locked()
+
+    def test_initially_locked_not_visible_to_students(self):
+        """
+        Scenario: A locked unit with release date in the past is not visible to students
+            Given I have a published locked unit with release date in the past
+            When I go to the unit page in Studio
+            And when I click on the View Live Button
+            And when I view the course as a student
+            Then I do not see any content in the unit
+        """
+        unit = self.go_to_unit_page("Section With Locked Unit", "Subsection With Locked Unit", "Locked Unit")
+        self.assertEqual(self.LOCKED_STATUS, unit.publish_title)
+        unit.view_published_version()
+        self._verify_student_view_locked()
+
+    def test_unlocked_visible_to_all(self):
+        """
+        Scenario: After unlocking a unit with release date in the past, it is visible to both students and staff
+            Given I have a published unlocked unit with release date in the past
+            When I go to the unit page in Studio
+            And when I click "Hide from students"
+            And when I click on the View Live Button
+            Then I see the content in the unit when logged in as staff
+            And when I view the course as a student
+            Then I see the content in the unit
+        """
+        unit = self.go_to_unit_page("Section With Locked Unit", "Subsection With Locked Unit", "Locked Unit")
+        checked = unit.toggle_staff_lock()
+        self.assertFalse(checked)
+        self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
+        unit.view_published_version()
+        # Will initially be in staff view, components always visible.
+        self._verify_components_visible(['discussion'])
+        # Switch to student view and verify visible.
+        self._verify_student_view_visible(['discussion'])
+
+    def _verify_student_view_locked(self):
+        """
+        Verifies no component is visible when viewing as a student.
+        """
+        StaffPage(self.browser).toggle_staff_view()
+        self.assertEqual(0, self.courseware.num_xblock_components)
+
+    def _verify_student_view_visible(self, expected_components):
+        """
+        Verifies expected components are visible when viewing as a student.
+        """
+        StaffPage(self.browser).toggle_staff_view()
+        self._verify_components_visible(expected_components)
+
+    def _verify_components_visible(self, expected_components):
+        """
+        Verifies the expected components are visible (and there are no extras).
+        """
+        self.assertEqual(len(expected_components), self.courseware.num_xblock_components)
+        for index, component in enumerate(expected_components):
+            self.assertEqual(component, self.courseware.xblock_component_type(index))
 
     # TODO: need to work with Jay/Christine to get testing of "Preview" working.
     # def test_preview(self):

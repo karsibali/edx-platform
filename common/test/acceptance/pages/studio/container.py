@@ -92,6 +92,24 @@ class ContainerPage(PageObject):
         self.q(css='a.button.action-primary').first.click()
         self.wait_for_ajax()
 
+    def toggle_staff_lock(self):
+        """
+        Toggles "hide from students" which enables or disables a staff-only lock.
+
+        Returns True if the lock is now enabled, else False.
+        """
+        checked_results = self.q(css='a.action-staff-lock>input').map(
+            lambda el: el.get_attribute('checked')
+        ).results
+        was_locked_initially = checked_results[0]
+        if not was_locked_initially:
+            self.q(css='a.action-staff-lock').first.click()
+        else:
+            click_css(self, 'a.action-staff-lock', 0, require_notification=False)
+            self.q(css='a.button.action-primary').first.click()
+        self.wait_for_ajax()
+        return not was_locked_initially
+
     def view_published_version(self):
         """
         Clicks "View Published Version", which will open the published version of the unit page in the LMS.
