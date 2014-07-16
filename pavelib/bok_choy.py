@@ -45,6 +45,35 @@ def test_bokchoy(options):
     test_suite = BokChoyTestSuite('bok-choy', **opts)
     test_suite.run()
 
+@task
+@needs('pavelib.prereqs.install_prereqs')
+@cmdopts([
+    ('test_spec=', 't', 'Specific test to run'),
+    ('fasttest', 'a', 'Skip some setup'),
+    make_option("--verbose", action="store_const", const=2, dest="verbosity"),
+    make_option("-q", "--quiet", action="store_const", const=0, dest="verbosity"),
+    make_option("-v", "--verbosity", action="count", dest="verbosity"),
+])
+def test_video(options):
+    """
+    Run acceptance tests that use the bok-choy framework.
+    Skips some setup if `fasttest` is True.
+
+    `test_spec` is a nose-style test specifier relative to the test directory
+    Examples:
+    - path/to/test.py
+    - path/to/test.py:TestFoo
+    - path/to/test.py:TestFoo.test_bar
+    It can also be left blank to run all tests in the suite.
+    """
+    opts = {
+        'test_spec': getattr(options, 'test_spec', None),
+        'fasttest': getattr(options, 'fasttest', False),
+        'verbosity': getattr(options, 'verbosity', 2)
+    }
+
+    test_suite = BokChoyTestSuite('bok-choy', **opts)
+    test_suite.run()
 
 @task
 def bokchoy_coverage():
