@@ -4,7 +4,6 @@ Views related to operations on course objects
 import json
 import random
 import string  # pylint: disable=W0402
-import uuid
 
 from django.utils.translation import ugettext as _
 import django.utils
@@ -956,33 +955,33 @@ class GroupConfiguration(object):
     @staticmethod
     def get_unit_urls(course, modulestore, course_key):
         """
-        Get all units names associated with experiments.
+        Get all units names and their urls that have experiments and associated
+        with configurations.
 
         Returns:
         {'user_partition_id':
             [
-                {'label': 'Unit Name / Experiment Name', 'url': 'url_to_parent_vertical1'},
-                {'label': 'Another Unit Name / Another Experiment Name', 'url': 'url_to_parent_vertical2'}
-            ]
+                {'label': 'Unit Name / Experiment Name', 'url': 'url_to_unit_1'},
+                {'label': 'Another Unit Name / Another Experiment Name', 'url': 'url_to_unit_1'}
+            ],
         }
         """
-
-        experiment_dict = {}
+        unit_urls = {}
         descriptors = modulestore.get_items(course.id, category='split_test')
         for split_test in descriptors:
-            experiment_dict[split_test.user_partition_id] = []
-            parent = modulestore.get_parent_location(split_test.location)
-            parent_url = reverse_usage_url(
+            if split_test.user_partition_id not in unit_urls:
+                unit_urls[split_test.user_partition_id] = []
+            unit_location = modulestore.get_parent_location(split_test.location)
+            unit = modulestore.get_item(unit_location)
+            unit_url = reverse_usage_url(
                 'unit_handler',
-                course_key.make_usage_key(parent.block_type, parent.name)
+                course_key.make_usage_key(unit.location.block_type, unit.location.name)
             )
-            for vertical in split_test.active_and_inactive_children()[0]:
-                for child in vertical.get_children():
-                    experiment_dict[split_test.user_partition_id].append({
-                        'label': '{} / {}'.format(child.display_name, split_test.display_name),
-                        'url': parent_url
-                    })
-        return experiment_dict
+            unit_urls[split_test.user_partition_id].append({
+                'label': '{} / {}'.format(unit.display_name, split_test.display_name),
+                'url': unit_url
+            })
+        return unit_urls
 
 
 @require_http_methods(("GET", "POST"))
