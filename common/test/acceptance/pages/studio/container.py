@@ -125,10 +125,8 @@ class ContainerPage(PageObject):
 
         Returns True if the lock is now enabled, else False.
         """
-        checked_results = self.q(css='a.action-staff-lock>input').map(
-            lambda el: el.get_attribute('checked')
-        ).results
-        was_locked_initially = checked_results[0]
+        class_attribute_values = self.q(css='a.action-staff-lock>i').attrs('class')
+        was_locked_initially = 'icon-check' in class_attribute_values
         if not was_locked_initially:
             self.q(css='a.action-staff-lock').first.click()
         else:
