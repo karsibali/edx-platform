@@ -205,10 +205,10 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
             },
 
             checkStaffLock: function(check) {
-                this.$('.lock-checkbox').prop('checked', check);
+                this.$('.action-staff-lock i').removeClass('icon-check icon-check-empty');
+                this.$('.action-staff-lock i').addClass(check ? 'icon-check' : 'icon-check-empty');
             }
         });
-
 
         /**
          * PublishHistory displays when and by whom the xblock was last published, if it ever was.

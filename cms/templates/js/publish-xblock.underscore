@@ -72,9 +72,12 @@ if (visibleToStaffOnly) {
             <p class="copy">Staff and Students</p>
         <% } %>
         <p class="action-inline">
-            <a href="" class="action-staff-lock">
-                <input type="checkbox" class="lock-checkbox" data-tooltip="<%= gettext('Lock/unlock file') %>"
-                         <%= visibleToStaffOnly ? "checked" : "" %>/>
+            <a href="" class="action-staff-lock" role="button" aria-pressed="<%= visibleToStaffOnly %>">
+                <% if (visibleToStaffOnly) { %>
+                    <i class="icon-check"></i>
+                <% } else { %>
+                    <i class="icon-check-empty"></i>
+                <% } %>
                 <%= gettext('Hide from students') %>
             </a>
         </p>

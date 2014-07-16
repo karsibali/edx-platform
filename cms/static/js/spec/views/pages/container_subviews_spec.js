@@ -340,7 +340,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                     var requestStaffOnly, verifyStaffOnly, promptSpy;
 
                     requestStaffOnly = function(isStaffOnly) {
-                        containerPage.$('.lock-checkbox').click();
+                        containerPage.$('.action-staff-lock').click();
 
                         // If removing the staff lock, click 'Yes' to confirm
                         if (!isStaffOnly) {
@@ -367,11 +367,11 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
 
                     verifyStaffOnly = function(isStaffOnly) {
                         if (isStaffOnly) {
-                            expect(containerPage.$('.lock-checkbox')).toBeChecked();
+                            expect(containerPage.$('.action-staff-lock i')).toHaveClass('icon-check');
                             expect(containerPage.$('.wrapper-visibility .copy').text()).toBe('Staff Only');
                             expect(containerPage.$(bitPublishingCss)).toHaveClass(staffOnlyBit);
                         } else {
-                            expect(containerPage.$('.lock-checkbox')).not.toBeChecked();
+                            expect(containerPage.$('.action-staff-lock i')).toHaveClass('icon-check-empty');
                             expect(containerPage.$('.wrapper-visibility .copy').text()).toBe('Staff and Students');
                             expect(containerPage.$(bitPublishingCss)).not.toHaveClass(staffOnlyBit);
                         }
@@ -384,7 +384,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
 
                     it("can be set to staff only", function() {
                         renderContainerPage(this, mockContainerXBlockHtml);
-                        containerPage.$('.lock-checkbox').click();
+                        containerPage.$('.action-staff-lock').click();
                         requestStaffOnly(true);
                         verifyStaffOnly(true);
                     });
@@ -413,7 +413,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                         renderContainerPage(this, mockContainerXBlockHtml);
                         requestStaffOnly(true);
                         requestCount = requests.length;
-                        containerPage.$('.lock-checkbox').click();
+                        containerPage.$('.action-staff-lock').click();
                         edit_helpers.confirmPrompt(promptSpy, true);    // Click 'No' to cancel
                         expect(requests.length).toBe(requestCount);
                         verifyStaffOnly(true);
