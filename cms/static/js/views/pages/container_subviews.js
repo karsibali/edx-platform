@@ -10,7 +10,7 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
          * A view that calls render when "has_changes" or "published" values in XBlockInfo have changed
          * after a server sync operation.
          */
-        var UnitStateListenerView =  BaseView.extend({
+        var ContainerStateListenerView = BaseView.extend({
 
             // takes XBlockInfo as a model
             initialize: function() {
@@ -18,18 +18,43 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
             },
 
             onSync: function(model) {
-                if (ViewUtils.hasChangedAttributes(model, ['has_changes', 'published'])) {
+                if (this.shouldRefresh(model)) {
                    this.render();
                 }
+            },
+
+            shouldRefresh: function(model) {
+                return false;
             },
 
             render: function() {}
         });
 
+        var MessageView = ContainerStateListenerView.extend({
+            initialize: function () {
+                ContainerStateListenerView.prototype.initialize.call(this);
+                this.template = this.loadTemplate('container-message');
+            },
+
+            shouldRefresh: function(model) {
+                return ViewUtils.hasChangedAttributes(model, ['currently_visible_to_students']);
+            },
+
+            render: function() {
+                this.$el.html(this.template({
+                    currentlyVisibleToStudents: this.model.get('currently_visible_to_students')
+                }));
+                return this;
+            }
+        });
+
         /**
          * A controller for updating the "View Live" and "Preview" buttons.
          */
-        var PreviewActionController = UnitStateListenerView.extend({
+        var PreviewActionController = ContainerStateListenerView.extend({
+            shouldRefresh: function(model) {
+                return ViewUtils.hasChangedAttributes(model, ['has_changes', 'published']);
+            },
 
             render: function() {
                 var previewAction = this.$el.find('.button-preview'),
@@ -215,6 +240,7 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
         });
 
         return {
+            'MessageView': MessageView,
             'PreviewActionController': PreviewActionController,
             'Publisher': Publisher,
             'PublishHistory': PublishHistory

@@ -15,6 +15,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 edit_helpers.installTemplate('publish-xblock');
                 edit_helpers.installTemplate('publish-history');
                 edit_helpers.installTemplate('unit-outline');
+                edit_helpers.installTemplate('container-message');
                 appendSetFixtures(mockContainerPage);
             });
 
@@ -26,7 +27,8 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
                 has_changes: false,
                 edited_on: "Jul 02, 2014 at 14:20 UTC", edited_by: "joe",
                 published_on: "Jul 01, 2014 at 12:45 UTC", published_by: "amako",
-                visible_to_staff_only: false
+                visible_to_staff_only: false,
+                currently_visible_to_students: false
             };
 
             createXBlockInfo = function(options) {
@@ -68,6 +70,7 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
             };
 
             fetch = function (json) {
+                json = createXBlockInfo(json);
                 model.fetch();
                 respondWithJson(json);
             };
@@ -431,25 +434,62 @@ define(["jquery", "underscore", "underscore.string", "js/spec_helpers/create_sin
             describe("PublishHistory", function () {
                 var lastPublishCss = ".wrapper-last-publish";
 
-                it('renders the last published date and user when the block is published', function () {
+                it('renders the last published date and user when the block is published', function() {
                     renderContainerPage(this, mockContainerXBlockHtml);
-                    fetch({ "id": "locator-container", "published": true,
-                        "published_on": "Jul 01, 2014 at 12:45 UTC", "published_by": "amako" });
+                    fetch({
+                        "published": true, "published_on": "Jul 01, 2014 at 12:45 UTC", "published_by": "amako"
+                    });
                     expect(containerPage.$(lastPublishCss).text()).
                         toContain("Last published Jul 01, 2014 at 12:45 UTC by amako");
                 });
 
                 it('renders never published when the block is unpublished', function () {
                     renderContainerPage(this, mockContainerXBlockHtml);
-                    fetch({ "id": "locator-container", "published": false,
-                        "published_on": "Jul 01, 2014 at 12:45 UTC", "published_by": "amako" });
+                    fetch({ "published": false });
                     expect(containerPage.$(lastPublishCss).text()).toContain("Never published");
                 });
 
                 it('renders correctly when the block is published without publish info', function () {
                     renderContainerPage(this, mockContainerXBlockHtml);
-                    fetch({ "id": "locator-container", "published": true, "published_on": null, "published_by": null});
+                    fetch({
+                        "published": true, "published_on": null, "published_by": null
+                    });
                     expect(containerPage.$(lastPublishCss).text()).toContain("Previously published");
+                });
+            });
+
+            describe("Message Area", function() {
+                var messageSelector = '.container-message .warning',
+                    warningMessage = 'This content is live for students. Edit with caution.';
+
+                it('is empty for a unit that is not currently visible to students', function() {
+                    renderContainerPage(this, mockContainerXBlockHtml, {
+                        currently_visible_to_students: false
+                    });
+                    expect(containerPage.$(messageSelector).text().trim()).toBe('');
+                });
+
+                it('shows a message for a unit that is currently visible to students', function() {
+                    renderContainerPage(this, mockContainerXBlockHtml, {
+                        currently_visible_to_students: true
+                    });
+                    expect(containerPage.$(messageSelector).text().trim()).toBe(warningMessage);
+                });
+
+                it('hides the message when the unit is hidden from students', function() {
+                    renderContainerPage(this, mockContainerXBlockHtml, {
+                        currently_visible_to_students: true
+                    });
+                    fetch({ currently_visible_to_students: false });
+                    expect(containerPage.$(messageSelector).text().trim()).toBe('');
+                });
+
+                it('shows a message when a unit is made visible', function() {
+                    renderContainerPage(this, mockContainerXBlockHtml, {
+                        currently_visible_to_students: false
+                    });
+                    fetch({ currently_visible_to_students: true });
+                    expect(containerPage.$(messageSelector).text().trim()).toBe(warningMessage);
                 });
             });
         });

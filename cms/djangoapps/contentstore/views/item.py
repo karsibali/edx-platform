@@ -37,6 +37,7 @@ from util.date_utils import get_default_time_display
 from util.json_request import expect_json, JsonResponse
 
 from .access import has_course_access
+from contentstore.utils import is_currently_visible_to_students
 from contentstore.views.helpers import is_unit, xblock_studio_url, xblock_primary_child_category, \
     xblock_type_display_name, get_parent_xblock
 from contentstore.views.preview import get_preview_fragment
@@ -649,6 +650,7 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
         "release_date": release_date,
         "release_date_from": _get_release_date_from(xblock) if release_date else None,
         "visible_to_staff_only": xblock.visible_to_staff_only,
+        "currently_visible_to_students": is_currently_visible_to_students(xblock),
     }
     if data is not None:
         xblock_info["data"] = data
