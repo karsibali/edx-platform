@@ -484,7 +484,7 @@ class UnitPublishingTest(ContainerBase):
             Then the title in the Publish information box is "Published"
         """
         unit = self.go_to_unit_page()
-        self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
+        self._verify_publish_title(unit, self.PUBLISHED_STATUS)
         # Start date set in course fixture to 1970.
         self._verify_release_date_info(
             unit, self.RELEASE_TITLE_RELEASED, 'Jan 01, 1970 at 00:00 UTC with Section "Test Section"'
@@ -494,10 +494,10 @@ class UnitPublishingTest(ContainerBase):
 
         # Add a component to the page so it will have unpublished changes.
         add_discussion(unit)
-        self.assertEqual(self.DRAFT_STATUS, unit.publish_title)
+        self._verify_publish_title(unit, self.DRAFT_STATUS)
         unit.publish_action.click()
         unit.wait_for_ajax()
-        self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
+        self._verify_publish_title(unit, self.PUBLISHED_STATUS)
 
     def test_discard_changes(self):
         """
@@ -513,9 +513,9 @@ class UnitPublishingTest(ContainerBase):
         """
         unit = self.go_to_unit_page()
         add_discussion(unit)
-        self.assertEqual(self.DRAFT_STATUS, unit.publish_title)
+        self._verify_publish_title(unit, self.DRAFT_STATUS)
         unit.discard_changes()
-        self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
+        self._verify_publish_title(unit, self.PUBLISHED_STATUS)
 
     def test_view_live_no_changes(self):
         """
@@ -574,7 +574,7 @@ class UnitPublishingTest(ContainerBase):
             Then I see the content in the unit
         """
         unit = self.go_to_unit_page("Unlocked Section", "Unlocked Subsection", "Unlocked Unit")
-        self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
+        self._verify_publish_title(unit, self.PUBLISHED_STATUS)
         self.assertTrue(unit.currently_visible_to_students)
         self._verify_release_date_info(
             unit, self.RELEASE_TITLE_RELEASED, self.past_start_date_text + ' with Section "Unlocked Section"'
@@ -598,7 +598,7 @@ class UnitPublishingTest(ContainerBase):
         checked = unit.toggle_staff_lock()
         self.assertTrue(checked)
         self.assertFalse(unit.currently_visible_to_students)
-        self.assertEqual(self.LOCKED_STATUS, unit.publish_title)
+        self._verify_publish_title(unit, self.LOCKED_STATUS)
         unit.view_published_version()
         # Will initially be in staff view, locked component should be visible.
         self._verify_components_visible(['problem'])
@@ -617,7 +617,7 @@ class UnitPublishingTest(ContainerBase):
             Then I do not see any content in the unit
         """
         unit = self.go_to_unit_page("Section With Locked Unit", "Subsection With Locked Unit", "Locked Unit")
-        self.assertEqual(self.LOCKED_STATUS, unit.publish_title)
+        self._verify_publish_title(unit, self.LOCKED_STATUS)
         self.assertFalse(unit.currently_visible_to_students)
         self._verify_release_date_info(
             unit, self.RELEASE_TITLE_RELEASED,
@@ -641,7 +641,7 @@ class UnitPublishingTest(ContainerBase):
         unit = self.go_to_unit_page("Section With Locked Unit", "Subsection With Locked Unit", "Locked Unit")
         checked = unit.toggle_staff_lock()
         self.assertFalse(checked)
-        self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
+        self._verify_publish_title(unit, self.PUBLISHED_STATUS)
         self.assertTrue(unit.currently_visible_to_students)
         unit.view_published_version()
         # Will initially be in staff view, components always visible.
@@ -677,6 +677,15 @@ class UnitPublishingTest(ContainerBase):
         """
         self.assertEqual(expected_title, unit.release_title)
         self.assertEqual(expected_date, unit.release_date)
+
+    def _verify_publish_title(self, unit, expected_title):
+        """
+        Waits for the publish title to change to the expected value.
+        """
+        def wait_for_title_change():
+            return (unit.publish_title == expected_title, unit.publish_title)
+
+        Promise(wait_for_title_change, "Publish title incorrect. Found '" + unit.publish_title + "'").fulfill()
 
     # TODO: need to work with Jay/Christine to get testing of "Preview" working.
     # def test_preview(self):
