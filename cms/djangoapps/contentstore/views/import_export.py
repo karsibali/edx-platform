@@ -210,20 +210,15 @@ def import_handler(request, course_key_string):
                             status=415
                         )
 
-                    logging.debug('found course.xml at {0}'.format(dirpath))
+                    dirpath = os.path.relpath(dirpath, data_root)
 
-                    if dirpath != course_dir:
-                        for fname in os.listdir(dirpath):
-                            try:
-                                shutil.move(dirpath / fname, course_dir)
-                            except shutil.Error:  # directory already exists
-                                pass
+                    logging.debug('found course.xml at {0}'.format(dirpath))
 
                     _module_store, course_items = import_from_xml(
                         modulestore(),
                         request.user.id,
                         settings.GITHUB_REPO_ROOT,
-                        [course_subdir],
+                        [dirpath],
                         load_error_modules=False,
                         static_content_store=contentstore(),
                         target_course_id=course_key,

@@ -605,7 +605,7 @@ class DraftModuleStore(MongoModuleStore):
         else:
             return False
 
-    def publish(self, location, user_id):
+    def publish(self, location, user_id, allow_not_found=False):
         """
         Publish the subtree rooted at location to the live course and remove the drafts.
         Such publishing may cause the deletion of previously published but subsequently deleted
@@ -615,7 +615,8 @@ class DraftModuleStore(MongoModuleStore):
         which to descend.
 
         Raises:
-            ItemNotFoundError: if any of the draft subtree nodes aren't found
+            ItemNotFoundError: if any of the draft subtree nodes aren't found unless
+                allow_not_found is True
         """
         # NOTE: cannot easily use self._breadth_first b/c need to get pub'd and draft as pairs
         # (could do it by having 2 breadth first scans, the first to just get all published children
@@ -627,7 +628,15 @@ class DraftModuleStore(MongoModuleStore):
             """
             Depth first publishing from the given location
             """
-            item = self.get_item(item_location)
+            try:
+                # handle child does not exist w/o killing publish
+                item = self.get_item(item_location)
+            except ItemNotFoundError:
+                if allow_not_found:
+                    log.warning('Cannot find: %s', item_location)
+                    return
+                else:
+                    raise
 
             # publish the children first
             if item.has_children:

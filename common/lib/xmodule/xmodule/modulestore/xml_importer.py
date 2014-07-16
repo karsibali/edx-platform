@@ -308,7 +308,7 @@ def import_from_xml(
                     )
 
                 # finally, publish the course
-                store.publish(course.location, user_id)
+                store.publish(course.location, user_id, allow_not_found=True)
 
                 # now import any DRAFT items
                 _import_course_draft(
