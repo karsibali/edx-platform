@@ -41,7 +41,6 @@ if (visibleToStaffOnly) {
         </p>
     </div>
 
-    <!--TODO this needs strikeout styles once staff lock exists-->
     <div class="wrapper-release bar-mod-content">
         <h5 class="title">
             <% if (published && releaseDate) {
@@ -66,13 +65,12 @@ if (visibleToStaffOnly) {
         </p>
     </div>
 
-    <!-- TODO: i18n -->
     <div class="wrapper-visibility bar-mod-content">
-        <h5 class="title">Will Be Visible To:</h5>
+        <h5 class="title"><%= gettext("Will Be Visible To:") %></h5>
         <% if (visibleToStaffOnly) { %>
-            <p class="copy">Staff Only</p>
+            <p class="copy"><%= gettext("Staff Only") %></p>
         <% } else { %>
-            <p class="copy">Staff and Students</p>
+            <p class="copy"><%= gettext("Staff and Students") %></p>
         <% } %>
         <p class="action-inline">
             <a href="" class="action-staff-lock" role="button" aria-pressed="<%= visibleToStaffOnly %>">
