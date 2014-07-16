@@ -61,6 +61,13 @@ class GroupConfiguration(object):
         """
         return self.find_css(css).first.text[0]
 
+    def click_outline_anchor(self):
+        """
+        Find outline
+        """
+        css = 'li.group-configuration-usage-text > a'
+        return self.find_css(css).first.click()
+
     def edit(self):
         """
         Open editing view for the group configuration.

@@ -9,6 +9,7 @@ from unittest import skip
 from ..fixtures.course import CourseFixture, XBlockFixtureDesc
 
 from ..pages.studio.component_editor import ComponentEditorView
+from ..pages.studio.overview import CourseOutlinePage
 from ..pages.studio.settings_advanced import AdvancedSettingsPage
 from ..pages.studio.settings_group_configurations import GroupConfigurationsPage
 from ..pages.studio.auto_auth import AutoAuthPage
@@ -236,6 +237,13 @@ class GroupConfigurationsTest(UniqueCourseTest):
         course_fix.add_advanced_settings({
             u"advanced_modules": {"value": ["split_test"]},
         })
+        course_fix.add_children(
+            XBlockFixtureDesc('chapter', 'Test Section').add_children(
+                XBlockFixtureDesc('sequential', 'Test Subsection').add_children(
+                    XBlockFixtureDesc('vertical', 'Test Unit')
+                )
+            )
+        )
 
         course_fix.install()
         self.course_fix = course_fix
@@ -251,6 +259,13 @@ class GroupConfigurationsTest(UniqueCourseTest):
         self.auth_page.visit()
 
         self.page = GroupConfigurationsPage(
+            self.browser,
+            self.course_info['org'],
+            self.course_info['number'],
+            self.course_info['run']
+        )
+
+        self.outline_page = CourseOutlinePage(
             self.browser,
             self.course_info['org'],
             self.course_info['number'],
@@ -447,3 +462,35 @@ class GroupConfigurationsTest(UniqueCourseTest):
             description="Description of the group configuration.",
             groups=["Group A", "Group B"]
         )
+
+    def test_group_configuration_usage(self):
+        """
+        Open Group configuration page -> Verify that link to the unit exists
+        Click the link -> Verify that we're on appropriate unit
+        Create another Unit and assign same group configuration
+        Open Group configuration page -> Verify that a different link to the unit exists
+        Unassign group configuration from the two units
+        Open Group configuration page -> Verify that outline link exists
+        """
+        # Create a new group configurations, outline page and unit
+        self.course_fix.add_advanced_settings({
+            u"user_partitions": {
+                "value": [
+                    UserPartition(0, "Name", "Description.", [Group("0", "Group A"), Group("1", "Group B")]).to_json()
+                ],
+            },
+        })
+        self.course_fix._add_advanced_settings()
+
+        self.page.visit()
+
+        # Edit the newly created group configuration and click on course outline link
+        config = self.page.group_configurations()[0]
+        config.toggle()
+        config.click_outline_anchor()
+        # Verify that we've landed on course outline page
+        self.assertEqual(self.outline_page.is_browser_on_page(), True)
+        # Create a unit and assign previous group configuration
+        self.unit = self.outline_page.section('Test Section').subsection('Test Subsection').toggle_expand().unit('Test Unit')
+        self.unit.go_to()
+        add_advanced_component(self.unit, 0, 'split_test')
