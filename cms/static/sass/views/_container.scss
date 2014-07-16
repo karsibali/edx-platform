@@ -112,7 +112,7 @@
       &.is-staff-only {
         @extend %bar-module-black;
 
-        .wrapper-release .copy {
+        &.is-scheduled .wrapper-release .copy {
           text-decoration: line-through;
         }
       }
