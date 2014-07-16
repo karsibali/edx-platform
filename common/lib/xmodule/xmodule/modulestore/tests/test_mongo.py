@@ -26,6 +26,7 @@ from xmodule.modulestore import ModuleStoreEnum
 from xmodule.modulestore.mongo import MongoModuleStore, MongoKeyValueStore
 from xmodule.modulestore.draft import DraftModuleStore
 from opaque_keys.edx.locations import SlashSeparatedCourseKey, AssetLocation
+from opaque_keys.edx.locator import CourseLocator
 from opaque_keys.edx.keys import UsageKey
 from xmodule.modulestore.xml_exporter import export_to_xml
 from xmodule.modulestore.xml_importer import import_from_xml, perform_xlint
@@ -351,7 +352,7 @@ class TestMongoModuleStore(unittest.TestCase):
         for course_number in self.courses:
             course_locations = self.draft_store.get_courses_for_wiki(course_number)
             assert_equals(len(course_locations), 1)
-            assert_equals(Location('edX', course_number, '2012_Fall', 'course', '2012_Fall'), course_locations[0])
+            assert_equals(SlashSeparatedCourseKey('edX', course_number, '2012_Fall'), course_locations[0])
 
         course_locations = self.draft_store.get_courses_for_wiki('no_such_wiki')
         assert_equals(len(course_locations), 0)
@@ -369,7 +370,7 @@ class TestMongoModuleStore(unittest.TestCase):
         course_locations = self.draft_store.get_courses_for_wiki('simple')
         assert_equals(len(course_locations), 2)
         for course_number in ['toy', 'simple']:
-            assert_in(Location('edX', course_number, '2012_Fall', 'course', '2012_Fall'), course_locations)
+            assert_in(SlashSeparatedCourseKey('edX', course_number, '2012_Fall'), course_locations)
 
         # configure simple course to use unique wiki_slug.
         simple_course = self.draft_store.get_course(SlashSeparatedCourseKey('edX', 'simple', '2012_Fall'))
@@ -378,7 +379,7 @@ class TestMongoModuleStore(unittest.TestCase):
         # it should be retrievable with its new wiki_slug
         course_locations = self.draft_store.get_courses_for_wiki('edX.simple.2012_Fall')
         assert_equals(len(course_locations), 1)
-        assert_in(Location('edX', 'simple', '2012_Fall', 'course', '2012_Fall'), course_locations)
+        assert_in(SlashSeparatedCourseKey('edX', 'simple', '2012_Fall'), course_locations)
 
     @Plugin.register_temp_plugin(ReferenceTestXBlock, 'ref_test')
     def test_reference_converters(self):

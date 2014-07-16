@@ -32,13 +32,15 @@ def user_is_article_course_staff(user, article):
     # be '<course_number>_'. This means slug '202_' can belong to either
     # course numbered '202_' or '202' and so we need to consider both.
 
-    courses = modulestore.django.modulestore().get_courses_for_wiki(wiki_slug)
-    if any(courseware.access.has_access(user, 'staff', course, course.course_key) for course in courses):
+    course_keys = modulestore.django.modulestore().get_courses_for_wiki(wiki_slug)
+    courses = [(modulestore.django.modulestore().get_course(course_key), course_key) for course_key in course_keys]
+    if any(courseware.access.has_access(user, 'staff', course, course_key) for (course, course_key) in courses):
         return True
 
     if (wiki_slug.endswith('_') and slug_is_numerical(wiki_slug[:-1])):
-        courses = modulestore.django.modulestore().get_courses_for_wiki(wiki_slug[:-1])
-        if any(courseware.access.has_access(user, 'staff', course, course.course_key) for course in courses):
+        course_keys = modulestore.django.modulestore().get_courses_for_wiki(wiki_slug[:-1])
+        courses = [(modulestore.django.modulestore().get_course(course_key), course_key) for course_key in course_keys]
+        if any(courseware.access.has_access(user, 'staff', course, course_key) for (course, course_key) in courses):
             return True
 
     return False

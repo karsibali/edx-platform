@@ -1191,7 +1191,14 @@ class MongoModuleStore(ModuleStoreWriteBase):
             {'_id': True}
         )
         # the course's run == its name. It's the only xblock for which that's necessarily true.
-        return [Location._from_deprecated_son(course['_id'], course['_id']['name']) for course in courses]
+        results = []
+        for course in courses:
+            loc = Location._from_deprecated_son(course['_id'], course['_id']['name'])
+            results.append(loc.course_key)
+        ## TODO: I am at a loss why the following list comprehension returns [], but the 
+        ## above for loop works.
+        #return [Location._from_deprecated_son(course['_id'], course['_id']['name']).course_key for course in courses]
+        return results
 
     def _create_new_field_data(self, _category, _location, definition_data, metadata):
         """
