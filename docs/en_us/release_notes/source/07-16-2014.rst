@@ -29,6 +29,8 @@ edX Studio
 edX Learning Management System
 ***************************************
    
+* The Instructor Dashboard **Analytics** tab now includes the number of students who interacted with the course by visiting pages, playing videos, contributing to discussions, submitting answers to problems, or completing other course activites. The active student count is updated each week.
+
 * Some links on the right side of the course wiki appeared to be disabled. This has been fixed. (LMS-1308)
 
 * Forum posts created by anonymous users appeared with a "by Staff" label. This bug has been fixed. (FOR-156)
@@ -48,6 +50,8 @@ The following documentation is available:
   download the entire guide as a PDF.
 
   Recent changes include: 
+
+  * The `Running Your Course`_ section now includes a `Participating in Course Discussions`_ chapter that provides information for both students and staff. 
 
   * The `Discussions`_ chapter has been updated to reflect changes in the UI.
        

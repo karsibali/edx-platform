@@ -142,6 +142,8 @@
 
 .. _Discussions: http://edx.readthedocs.org/projects/edx-partner-course-staff/en/latest/running_course/discussions.html  
 
+.. _Participating in Course Discussions: http://edx.readthedocs.org/projects/edx-partner-course-staff/en/latest/running_course/discussions_students.html
+
 .. _Guidance for Discussion Moderators: http://edx.readthedocs.org/projects/edx-partner-course-staff/en/latest/running_course/discussion_guidance_moderators.html
 
 .. _External Graders: http://edx.readthedocs.org/projects/edx-partner-course-staff/en/latest/exercises_tools/external_graders.html
