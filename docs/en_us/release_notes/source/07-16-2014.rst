@@ -19,7 +19,7 @@ an email message when we have updated the edX Course Staff Release Notes.
 edX Studio
 ***************************************
 
-* In open response assessments, students can now upload an image file as well as write a text response in an assignment. For more information, see `Creating Peer Assessments`_.
+* In open response assessments, instructors can now create assignments that allow students to upload an image file as well as write a text response. For more information, see `Creating Peer Assessments`_.
 
 * In open response assessments, instructors can now create a criterion that includes a field for comments, but no options. For more information, see `Creating Peer Assessments`_.
 
