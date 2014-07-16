@@ -1003,6 +1003,7 @@ def group_configurations_list_handler(request, course_key_string):
 
     if 'text/html' in request.META.get('HTTP_ACCEPT', 'text/html'):
         group_configuration_url = reverse_course_url('group_configurations_list_handler', course_key)
+        course_outline_url = reverse_course_url('course_handler', course_key)
         split_test_enabled = SPLIT_TEST_COMPONENT_TYPE in course.advanced_modules
 
         unit_urls = GroupConfiguration.get_unit_urls(course, store, course_key)
@@ -1010,12 +1011,12 @@ def group_configurations_list_handler(request, course_key_string):
         for partition in course.user_partitions:
             configuration = partition.to_json()
             configuration['usage'] = unit_urls.get(partition.id, [])
-            configuration['course_outline_url'] = reverse_course_url('course_handler', course_key)
             configurations.append(configuration)
 
         return render_to_response('group_configurations.html', {
             'context_course': course,
             'group_configuration_url': group_configuration_url,
+            'course_outline_url': course_outline_url,
             'configurations': configurations if split_test_enabled else None,
         })
     elif "application/json" in request.META.get('HTTP_ACCEPT'):

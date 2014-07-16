@@ -13,8 +13,7 @@ function(Backbone, _, str, gettext, GroupModel, GroupCollection) {
                 groups: new GroupCollection([]),
                 showGroups: false,
                 editing: false,
-                usage: [],
-                course_outline_url: ''
+                usage: []
             };
         },
 

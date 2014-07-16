@@ -31,6 +31,7 @@ function(BaseView, _, gettext) {
             var attrs = $.extend({}, this.model.attributes, {
                 groupsCountMessage: this.getGroupsCountTitle(),
                 usageCountMessage: this.getUsageCountTitle(),
+                outlineUrl: this.model.collection.outlineUrl,
                 index: this.model.collection.indexOf(this.model)
             });
 
