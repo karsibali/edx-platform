@@ -78,6 +78,33 @@ class ContainerPage(PageObject):
         return self.q(css='.pub-status').first.text[0]
 
     @property
+    def release_title(self):
+        """
+        Returns the title before the release date in the publishing sidebar component.
+        """
+        return self.q(css='.wrapper-release .title').first.text[0]
+
+    @property
+    def release_date(self):
+        """
+        Returns the release date of the unit (with ancestor inherited from), as displayed
+        in the publishing sidebar component.
+        """
+        return self.q(css='.wrapper-release .copy').first.text[0]
+
+    @property
+    def currently_visible_to_students(self):
+        """
+        Returns True if the unit is marked as currently visibile to students
+        (meaning that a warning is being displayed).
+        """
+        warnings = self.q(css='.container-message .warning')
+        if len(warnings) == 0:
+            return False
+        warning_text = warnings.first.text[0]
+        return warning_text == "This content is live for students. Edit with caution."
+
+    @property
     def publish_action(self):
         """
         Returns the link for publishing a unit.

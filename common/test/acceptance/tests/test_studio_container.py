@@ -425,6 +425,7 @@ class UnitPublishingTest(ContainerBase):
     PUBLISHED_STATUS = "Publishing Status\nPublished"
     DRAFT_STATUS = "Publishing Status\nDraft (Unpublished changes)"
     LOCKED_STATUS = "Publishing Status\nUnpublished (Staff only)"
+    RELEASE_TITLE_RELEASED = "RELEASED:"
 
     def setup_fixtures(self):
         """
@@ -441,6 +442,7 @@ class UnitPublishingTest(ContainerBase):
         )
         
         past_start_date = datetime.datetime(1974, 6, 22)
+        self.past_start_date_text = "Jun 22, 1974 at 00:00 UTC"
 
         course_fix.add_children(
             XBlockFixtureDesc('chapter', 'Test Section').add_children(
@@ -457,8 +459,8 @@ class UnitPublishingTest(ContainerBase):
                     )
                 )
             ),
-            XBlockFixtureDesc('chapter', 'Section With Locked Unit', metadata={'start': past_start_date.isoformat()}).add_children(
-                XBlockFixtureDesc('sequential', 'Subsection With Locked Unit').add_children(
+            XBlockFixtureDesc('chapter', 'Section With Locked Unit').add_children(
+                XBlockFixtureDesc('sequential', 'Subsection With Locked Unit', metadata={'start': past_start_date.isoformat()}).add_children(
                     XBlockFixtureDesc('vertical', 'Locked Unit', metadata={'visible_to_staff_only': True}).add_children(
                         XBlockFixtureDesc('discussion', '', data=self.html_content)
                     )
@@ -483,6 +485,10 @@ class UnitPublishingTest(ContainerBase):
         """
         unit = self.go_to_unit_page()
         self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
+        # Start date set in course fixture to 1970.
+        self._verify_release_date_info(
+            unit, self.RELEASE_TITLE_RELEASED, 'Jan 01, 1970 at 00:00 UTC with Section "Test Section"'
+        )
         # Should not be able to click on Publish action -- but I don't know how to test that it is not clickable.
         # TODO: continue discussion with Muhammad and Jay about this.
 
@@ -561,12 +567,18 @@ class UnitPublishingTest(ContainerBase):
         Scenario: An unlocked unit with release date in the past is visible to students
             Given I have a published unlocked unit with release date in the past
             When I go to the unit page in Studio
+            Then the unit has a warning that it is visible to students
+            And it is marked as "RELEASED" with release date in the past visible
             And when I click on the View Live Button
             And when I view the course as a student
             Then I see the content in the unit
         """
         unit = self.go_to_unit_page("Unlocked Section", "Unlocked Subsection", "Unlocked Unit")
         self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
+        self.assertTrue(unit.currently_visible_to_students)
+        self._verify_release_date_info(
+            unit, self.RELEASE_TITLE_RELEASED, self.past_start_date_text + ' with Section "Unlocked Section"'
+        )
         unit.view_published_version()
         self._verify_student_view_visible(['problem'])
 
@@ -576,6 +588,7 @@ class UnitPublishingTest(ContainerBase):
             Given I have a published unlocked unit with release date in the past
             When I go to the unit page in Studio
             And when I select "Hide from students"
+            Then the unit does not have a warning that it is visible to students
             And when I click on the View Live Button
             Then I see the content in the unit when logged in as staff
             And when I view the course as a student
@@ -584,6 +597,7 @@ class UnitPublishingTest(ContainerBase):
         unit = self.go_to_unit_page("Unlocked Section", "Unlocked Subsection", "Unlocked Unit")
         checked = unit.toggle_staff_lock()
         self.assertTrue(checked)
+        self.assertFalse(unit.currently_visible_to_students)
         self.assertEqual(self.LOCKED_STATUS, unit.publish_title)
         unit.view_published_version()
         # Will initially be in staff view, locked component should be visible.
@@ -596,12 +610,19 @@ class UnitPublishingTest(ContainerBase):
         Scenario: A locked unit with release date in the past is not visible to students
             Given I have a published locked unit with release date in the past
             When I go to the unit page in Studio
+            Then the unit does not have a warning that it is visible to students
+            And it is marked as "RELEASED" with release date in the past visible
             And when I click on the View Live Button
             And when I view the course as a student
             Then I do not see any content in the unit
         """
         unit = self.go_to_unit_page("Section With Locked Unit", "Subsection With Locked Unit", "Locked Unit")
         self.assertEqual(self.LOCKED_STATUS, unit.publish_title)
+        self.assertFalse(unit.currently_visible_to_students)
+        self._verify_release_date_info(
+            unit, self.RELEASE_TITLE_RELEASED,
+            self.past_start_date_text + ' with Subsection "Subsection With Locked Unit"'
+        )
         unit.view_published_version()
         self._verify_student_view_locked()
 
@@ -611,6 +632,7 @@ class UnitPublishingTest(ContainerBase):
             Given I have a published unlocked unit with release date in the past
             When I go to the unit page in Studio
             And when I deselect "Hide from students"
+            Then the unit does have a warning that it is visible to students
             And when I click on the View Live Button
             Then I see the content in the unit when logged in as staff
             And when I view the course as a student
@@ -620,6 +642,7 @@ class UnitPublishingTest(ContainerBase):
         checked = unit.toggle_staff_lock()
         self.assertFalse(checked)
         self.assertEqual(self.PUBLISHED_STATUS, unit.publish_title)
+        self.assertTrue(unit.currently_visible_to_students)
         unit.view_published_version()
         # Will initially be in staff view, components always visible.
         self._verify_components_visible(['discussion'])
@@ -647,6 +670,13 @@ class UnitPublishingTest(ContainerBase):
         self.assertEqual(len(expected_components), self.courseware.num_xblock_components)
         for index, component in enumerate(expected_components):
             self.assertEqual(component, self.courseware.xblock_component_type(index))
+
+    def _verify_release_date_info(self, unit, expected_title, expected_date):
+        """
+        Verifies how the release date is displayed in the publishing sidebar.
+        """
+        self.assertEqual(expected_title, unit.release_title)
+        self.assertEqual(expected_date, unit.release_date)
 
     # TODO: need to work with Jay/Christine to get testing of "Preview" working.
     # def test_preview(self):
