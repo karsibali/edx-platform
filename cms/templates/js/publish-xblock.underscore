@@ -10,6 +10,9 @@ if (published) {
         title = gettext("Published");
     }
 }
+if (releaseDate) {
+    publishClasses = publishClasses + " is-scheduled";
+}
 if (visibleToStaffOnly) {
     publishClasses = publishClasses + " is-staff-only";
     title = gettext("Unpublished (Staff only)");
