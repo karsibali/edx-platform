@@ -926,7 +926,7 @@ class GroupConfiguration(object):
         """
         # Assign ids to every group in configuration.
         for group in self.configuration.get('groups', []):
-            if group.get("id", -1) < 0:
+            if not isinstance(group.get('id'), int):
                 group["id"] = random.randint(100, 10 ** 12)
 
     def get_used_ids(self):

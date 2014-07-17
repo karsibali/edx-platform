@@ -10,6 +10,7 @@ from unittest import skip, skipUnless
 from xmodule.partitions.partitions import Group, UserPartition
 from bok_choy.promise import Promise
 
+
 from ..fixtures.course import CourseFixture, XBlockFixtureDesc
 from ..pages.studio.component_editor import ComponentEditorView
 from ..pages.studio.settings_advanced import AdvancedSettingsPage
@@ -18,11 +19,51 @@ from ..pages.studio.auto_auth import AutoAuthPage
 from ..pages.studio.utils import add_advanced_component
 from ..pages.xblock.utils import wait_for_xblock_initialization
 from .helpers import UniqueCourseTest
-
 from test_studio_container import ContainerBase
 
 
-class SplitTest(ContainerBase):
+class SplitTestMixin(object):
+    """
+    Mixin that contains useful methods for split_test module testing.
+    """
+    def verify_groups(self, container, active_groups, inactive_groups, verify_missing_groups_not_present=True):
+        """
+        Check that the groups appear and are correctly categorized as to active and inactive.
+
+        Also checks that the "add missing groups" button/link is not present unless a value of False is passed
+        for verify_missing_groups_not_present.
+        """
+        def wait_for_xblocks_to_render():
+            # First xblock is the container for the page, subtract 1.
+            return (len(active_groups) + len(inactive_groups) == len(container.xblocks) - 1, len(active_groups))
+
+        Promise(wait_for_xblocks_to_render, "Number of xblocks on the page are incorrect").fulfill()
+
+        def check_xblock_names(expected_groups, actual_blocks):
+            self.assertEqual(len(expected_groups), len(actual_blocks))
+            for idx, expected in enumerate(expected_groups):
+                self.assertEqual('Expand or Collapse\n{}'.format(expected), actual_blocks[idx].name)
+
+        check_xblock_names(active_groups, container.active_xblocks)
+        check_xblock_names(inactive_groups, container.inactive_xblocks)
+
+        # Verify inactive xblocks appear after active xblocks
+        check_xblock_names(active_groups + inactive_groups, container.xblocks[1:])
+        if verify_missing_groups_not_present:
+            self.verify_add_missing_groups_button_not_present(container)
+
+    def verify_add_missing_groups_button_not_present(self, container):
+        """
+        Checks that the "add missing gorups" button/link is not present.
+        """
+        def missing_groups_button_not_present():
+            button_present = container.missing_groups_button_present()
+            return (not button_present, not button_present)
+
+        Promise(missing_groups_button_not_present, "Add missing groups button should not be showing.").fulfill()
+
+
+class SplitTest(ContainerBase, SplitTestMixin):
     """
     Tests for creating and editing split test instances in Studio.
     """
@@ -57,21 +98,6 @@ class SplitTest(ContainerBase):
         self.course_fix = course_fix
 
         self.user = course_fix.user
-
-    def verify_groups(self, container, active_groups, inactive_groups, verify_missing_groups_not_present=True):
-        super(SplitTest, self).verify_groups(container, active_groups, inactive_groups)
-        if verify_missing_groups_not_present:
-            self.verify_add_missing_groups_button_not_present(container)
-
-    def verify_add_missing_groups_button_not_present(self, container):
-        """
-        Checks that the "add missing gorups" button/link is not present.
-        """
-        def missing_groups_button_not_present():
-            button_present = container.missing_groups_button_present()
-            return (not button_present, not button_present)
-
-        Promise(missing_groups_button_not_present, "Add missing groups button should not be showing.").fulfill()
 
     def create_poorly_configured_split_instance(self):
         """
@@ -210,7 +236,7 @@ class SettingsMenuTest(UniqueCourseTest):
 
 
 @skipUnless(os.environ.get('FEATURE_GROUP_CONFIGURATIONS'), 'Tests Group Configurations feature')
-class GroupConfigurationsTest(ContainerBase):
+class GroupConfigurationsTest(ContainerBase, SplitTestMixin):
     """
     Tests that Group Configurations page works correctly with previously
     added configurations in Studio
@@ -414,7 +440,7 @@ class GroupConfigurationsTest(ContainerBase):
         config.name = "New Group Configuration Name"
         # Add new group
         config.add_group()
-        config.group[2].name = "New group"
+        config.groups[2].name = "New group"
         # Save the configuration
         config.save()
 
@@ -449,14 +475,13 @@ class GroupConfigurationsTest(ContainerBase):
             "Second Group Configuration Name",
             container.get_xblock_information_message()
         )
-        self.verify_groups(container, ['Group B', 'New group'], ['Group A'])
+        self.verify_groups(
+            container, ['Group B', 'New group'], ['Group A'],
+            verify_missing_groups_not_present=False
+        )
         # Click the add button and verify that the groups were added on the page
         container.add_missing_groups()
-        self.verify_groups(
-            container,
-            ['Group B', 'New group', 'Group D'], ['Group A'],
-            verify_missing_groups_not_present=True
-        )
+        self.verify_groups(container, ['Group B', 'New group', 'Group D'], ['Group A'])
 
     def test_can_cancel_creation_of_group_configuration(self):
         """

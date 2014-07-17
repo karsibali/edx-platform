@@ -37,7 +37,7 @@ function (_, str, Backbone, gettext, GroupModel) {
         getNextDefaultGroupName: function () {
             var index = this.nextOrder(),
                 usedNames = _.pluck(this.toJSON(), 'name'),
-                name;
+                name = '';
 
             do {
                 name = this.getDefaultGroupName(index);
