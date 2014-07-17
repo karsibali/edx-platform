@@ -206,7 +206,7 @@ class GroupConfigurationsDetailHandlerTestCase(CourseTestCase, GroupConfiguratio
 
         response = self.client.put(
             self._url(cid=999),
-            data=json.dumps(GROUP_CONFIGURATION_JSON),
+            data=json.dumps(expected),
             content_type="application/json",
             HTTP_ACCEPT="application/json",
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
