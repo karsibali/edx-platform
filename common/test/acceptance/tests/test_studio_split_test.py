@@ -363,11 +363,11 @@ class GroupConfigurationsTest(ContainerBase, SplitTestMixin):
         Scenario: Ensure that the group configuration can be created and edited correctly.
         Given I have a course without group configurations
         When I click button 'Create new Group Configuration'
-        And I set new name and description
+        And I set new name and description, change name for the 2nd default group, add one new group
         And I click button 'Create'
-        Then I see the new group configuration is added
+        Then I see the new group configuration is added and has correct data
         When I edit the group group_configuration
-        And I change the name and description
+        And I change the name and description, add new group, remove old one and change name for the Group A
         And I click button 'Save'
         Then I see the group configuration is saved successfully and has the new data
         """
@@ -427,11 +427,15 @@ class GroupConfigurationsTest(ContainerBase, SplitTestMixin):
         When I assign created group configuration to the module
         Then I see the module has correct groups
         And I go to the Group Configuration page in Studio
-        And I edit the name of the group configuration
+        And I edit the name of the group configuration, add new group and remove old one
         And I go to the unit page in Studio
         And I edit the unit
         Then I see the group configuration name is changed in `Group Configuration` dropdown
         And the group configuration name is changed on container page
+        And I see the module has 2 active groups and one inactive
+        And I see "Add missing groups" link exists
+        When I click on "Add missing groups" link
+        The I see the module has 3 active groups and one inactive
         """
         self.page.visit()
         # Create new group configuration
@@ -488,7 +492,7 @@ class GroupConfigurationsTest(ContainerBase, SplitTestMixin):
         Scenario: Ensure that creation of the group configuration can be canceled correctly.
         Given I have a course without group configurations
         When I click button 'Create new Group Configuration'
-        And I set new name and description
+        And I set new name and description, add 1 additional group
         And I click button 'Cancel'
         Then I see that there is no new group configurations in the course
         """
@@ -513,7 +517,7 @@ class GroupConfigurationsTest(ContainerBase, SplitTestMixin):
         Scenario: Ensure that editing of the group configuration can be canceled correctly.
         Given I have a course with group configuration
         When I go to the edit mode of the group configuration
-        And I set new name and description
+        And I set new name and description, add 2 additional groups
         And I click button 'Cancel'
         Then I see that new changes were discarded
         """
@@ -552,7 +556,12 @@ class GroupConfigurationsTest(ContainerBase, SplitTestMixin):
         And I create new group configuration with 2 default groups
         When I set only description and try to save
         Then I see error message "Group Configuration name is required"
-        When I set new name and try to save
+        When I set a name
+        And I delete the name of one of the groups and try to save
+        Then I see error message "All groups must have a name"
+        When I delete the group without name and try to save
+        Then I see error message "Please add at least two groups"
+        When I add new group and try to save
         Then I see the group configuration is saved successfully
         """
         def try_to_save_and_verify_error_message(message):
