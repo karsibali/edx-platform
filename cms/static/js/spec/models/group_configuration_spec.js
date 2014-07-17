@@ -153,8 +153,8 @@ define([
         });
 
         describe('Basic', function() {
-            it('should not have a name by default', function() {
-                expect(this.model.get('name')).toEqual(null);
+            it('should have an empty name by default', function() {
+                expect(this.model.get('name')).toEqual('');
             });
 
             it('should be empty by default', function() {
