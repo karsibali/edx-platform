@@ -371,7 +371,7 @@ class DraftModuleStore(MongoModuleStore):
             DuplicateItemError: if the source or any of its descendants already has a draft copy
         """
         # delegating to internal b/c we don't want any public user to use the kwargs on the internal
-        self._convert_to_draft(location, user_id)
+        self._convert_to_draft(location, user_id, ignore_if_draft=True)
 
         # return the new draft item (does another fetch)
         # get_item will wrap_draft so don't call it here (otherwise, it would override the is_draft attribute)
