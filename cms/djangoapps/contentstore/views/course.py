@@ -953,7 +953,7 @@ class GroupConfiguration(object):
         return UserPartition.from_json(self.configuration)
 
     @staticmethod
-    def get_unit_urls(course, modulestore, course_key):
+    def _get_usage_info(course, modulestore, course_key):
         """
         Get all units names and their urls that have experiments and associated
         with configurations.
@@ -966,22 +966,36 @@ class GroupConfiguration(object):
             ],
         }
         """
-        unit_urls = {}
+        usage_info = {}
         descriptors = modulestore.get_items(course.id, category='split_test')
         for split_test in descriptors:
-            if split_test.user_partition_id not in unit_urls:
-                unit_urls[split_test.user_partition_id] = []
-            unit_location = modulestore.get_parent_location(split_test.location)
-            unit = modulestore.get_item(unit_location)
+            if split_test.user_partition_id not in usage_info:
+                usage_info[split_test.user_partition_id] = []
+            unit = modulestore.get_item(modulestore.get_parent_location(split_test.location))
             unit_url = reverse_usage_url(
                 'unit_handler',
                 course_key.make_usage_key(unit.location.block_type, unit.location.name)
             )
-            unit_urls[split_test.user_partition_id].append({
+            usage_info[split_test.user_partition_id].append({
                 'label': '{} / {}'.format(unit.display_name, split_test.display_name),
                 'url': unit_url
             })
-        return unit_urls
+        return usage_info
+
+    @staticmethod
+    def add_usage_info(course, modulestore, course_key):
+        """
+        Add usage information to group configurations json.
+
+        Returns json of group configurations updated with usage information.
+        """
+        usage_info = GroupConfiguration._get_usage_info(course, modulestore, course_key)
+        configurations = []
+        for partition in course.user_partitions:
+            configuration = partition.to_json()
+            configuration['usage'] = usage_info.get(partition.id, [])
+            configurations.append(configuration)
+        return configurations
 
 
 @require_http_methods(("GET", "POST"))
@@ -1005,12 +1019,7 @@ def group_configurations_list_handler(request, course_key_string):
         course_outline_url = reverse_course_url('course_handler', course_key)
         split_test_enabled = SPLIT_TEST_COMPONENT_TYPE in course.advanced_modules
 
-        unit_urls = GroupConfiguration.get_unit_urls(course, store, course_key)
-        configurations = []
-        for partition in course.user_partitions:
-            configuration = partition.to_json()
-            configuration['usage'] = unit_urls.get(partition.id, [])
-            configurations.append(configuration)
+        configurations = GroupConfiguration.add_usage_info(course, store, course_key)
 
         return render_to_response('group_configurations.html', {
             'context_course': course,
