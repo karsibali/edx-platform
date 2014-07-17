@@ -253,6 +253,9 @@ class GroupConfigurationsTest(ContainerBase):
         if cid:
             self.assertEqual(cid, config.id)
         else:
+            # To make sure that id is present on the page and it is not an empty.
+            # We do not check the value of the id, because it's generated randomly and we cannot
+            # predict this value
             self.assertTrue(config.id)
 
         # Expand the configuration
