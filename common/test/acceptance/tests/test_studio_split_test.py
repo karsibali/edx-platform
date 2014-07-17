@@ -271,8 +271,12 @@ class GroupConfigurationsTest(ContainerBase):
 
     def test_no_group_configurations_added(self):
         """
-        Ensure that message telling me to create a new group configuration is
+        Scenario: Ensure that message telling me to create a new group configuration is
         shown when group configurations were not added.
+        Given I have a course without group configurations
+        When I go to the Group Configuration page in Studio
+        Then I see "You haven't created any group configurations yet." message
+        And "Create new Group Configuration" button is available
         """
         self.page.visit()
         css = ".wrapper-content .no-group-configurations-content"
@@ -284,8 +288,14 @@ class GroupConfigurationsTest(ContainerBase):
 
     def test_group_configurations_have_correct_data(self):
         """
-        Ensure that the group configuration is rendered correctly in
-        expanded/collapsed mode.
+        Scenario: Ensure that the group configuration is rendered correctly in expanded/collapsed mode.
+        Given I have a course with 2 group configurations
+        And I go to the Group Configuration page in Studio
+        And I work with the first group configuration
+        And I see `name`, `id` are visible and have correct values
+        When I expand the first group configuration
+        Then I see `description` and `groups` appear and also have correct values
+        And I do the same checks for the second group configuration
         """
         self.course_fix.add_advanced_settings({
             u"user_partitions": {
@@ -320,7 +330,16 @@ class GroupConfigurationsTest(ContainerBase):
 
     def test_can_create_and_edit_group_configuration(self):
         """
-        Ensure that the group configuration can be created and edited correctly.
+        Scenario: Ensure that the group configuration can be created and edited correctly.
+        Given I have a course without group configurations
+        When I click button 'Create new Group Configuration'
+        And I set new name and description
+        And I click button 'Create'
+        Then I see the new group configuration is added
+        When I edit the group group_configuration
+        And I change the name and description
+        And I click button 'Save'
+        Then I see the group configuration is saved successfully and has the new data
         """
         self.page.visit()
         self.assertEqual(len(self.page.group_configurations()), 0)
@@ -358,7 +377,20 @@ class GroupConfigurationsTest(ContainerBase):
 
     def test_use_group_configuration(self):
         """
-        Create and use group configuration
+        Scenario: Ensure that the group configuration can be used by split_module correctly
+        Given I have a course without group configurations
+        When I create new group configuration
+        And I set new name and add a new group, save the group configuration
+        And I go to the unit page in Studio
+        And I add new advanced module "Content Experiment"
+        When I assign created group configuration to the module
+        Then I see the module has correct groups
+        And I go to the Group Configuration page in Studio
+        And I edit the name of the group configuration
+        And I go to the unit page in Studio
+        And I edit the unit
+        Then I see the group configuration name is changed in `Group Configuration` dropdown
+        And the group configuration name is changed on container page
         """
         self.page.visit()
         # Create new group configuration
@@ -398,7 +430,12 @@ class GroupConfigurationsTest(ContainerBase):
 
     def test_can_cancel_creation_of_group_configuration(self):
         """
-        Ensure that creation of the group configuration can be canceled correctly.
+        Scenario: Ensure that creation of the group configuration can be canceled correctly.
+        Given I have a course without group configurations
+        When I click button 'Create new Group Configuration'
+        And I set new name and description
+        And I click button 'Cancel'
+        Then I see that there is no new group configurations in the course
         """
         self.page.visit()
 
@@ -416,7 +453,12 @@ class GroupConfigurationsTest(ContainerBase):
 
     def test_can_cancel_editing_of_group_configuration(self):
         """
-        Ensure that editing of the group configuration can be canceled correctly.
+        Scenario: Ensure that editing of the group configuration can be canceled correctly.
+        Given I have a course with group configuration
+        When I go to the edit mode of the group configuration
+        And I set new name and description
+        And I click button 'Cancel'
+        Then I see that new changes were discarded
         """
         self.course_fix.add_advanced_settings({
             u"user_partitions": {
@@ -445,7 +487,13 @@ class GroupConfigurationsTest(ContainerBase):
 
     def test_group_configuration_validation(self):
         """
-        Ensure that validation of the group configuration works correctly.
+        Scenario: Ensure that validation of the group configuration works correctly.
+        Given I have a course without group configurations
+        And I create new group configuration with 2 default groups
+        When I set only description and try to save
+        Then I see error message "Group Configuration name is required"
+        When I set new name and try to save
+        Then I see the group configuration is saved successfully
         """
         self.page.visit()
 
